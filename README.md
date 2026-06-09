@@ -18,7 +18,7 @@ The project is built for the CIS AI-Powered Competitive Analysis Agent Challenge
 
 ## Technical Architecture
 
-![CompeteInsight Technical Architecture](diagrams/competeinsight_architecture.svg)
+![CompeteInsight Technical Architecture](CIS架构图.png)
 
 The system uses a frontend-backend separated architecture:
 
@@ -30,7 +30,7 @@ The system uses a frontend-backend separated architecture:
 
 ## Multi-Agent Orchestration
 
-![CompeteInsight Multi-Agent Orchestration](diagrams/competeinsight_agent_orchestration.svg)
+![CompeteInsight Multi-Agent Orchestration](Agent架构图.png)
 
 | Agent                      | Responsibility                                                                                                              | Key Outputs                                      |
 | -------------------------- | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
