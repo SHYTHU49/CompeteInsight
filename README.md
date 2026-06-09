@@ -115,7 +115,7 @@ CG_AUTH_PASSWORD=change-me
 CG_AUTH_SECRET=replace-with-a-long-random-secret
 ```
 
-支持的 LLM Key 包括 `ARK_API_KEY`、`DEEPSEEK_API_KEY` 和 `QWEN_API_KEY`。公开仓库中不要提交真实 API Key、评审密码或 `CG_AUTH_SECRET`。
+支持的 LLM Key 包括 `ARK_API_KEY`、`DEEPSEEK_API_KEY` 和 `QWEN_API_KEY`。
 
 ## 登录与用户隔离
 
@@ -124,25 +124,6 @@ CG_AUTH_SECRET=replace-with-a-long-random-secret
 - `POST /api/login`
 - `POST /api/logout`
 - `GET /api/me`
-
-业务 API 和 `/files/...` artifacts 需要登录后访问。新建 run 会标记 owner，便于后续扩展为多用户隔离；服务器上的历史 demo run 可以作为评审样例保留。
-
-## 部署
-
-项目包含一个面向阿里云服务器的部署脚本，会构建前端、打包后端和静态资源，上传到远端，并安装隔离的 systemd + Nginx 服务。
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\deploy_satmon.ps1
-```
-
-当前隔离部署默认值：
-
-- 远端目录：`/mnt/competegraph/app`
-- 后端监听：`127.0.0.1:18000`
-- 公网入口：`18080`
-- systemd 服务：`competegraph-api`
-
-部署脚本不会覆盖远端 `data/runs`，因此服务器上的已有研究 artifacts 会被保留。
 
 ## 测试
 
@@ -153,12 +134,6 @@ uv run pytest
 cd ../frontend
 pnpm build
 ```
-
-当前状态：
-
-- 后端测试：11 tests passing。
-- 前端生产构建：passing。
-- 公网健康检查：`/health` 返回 `ok`。
 
 ## Demo Run 指标
 
@@ -180,10 +155,3 @@ pnpm build
 - 做 Evidence Graph，可视化 `Source -> Evidence -> Claim -> Recommendation`。
 - 增加报告版本管理、diff、采纳和回滚。
 - 增加 PM、销售、投资人、战略、Battlecard 等研究模板。
-- 用 SSE 或 WebSocket 替代轮询，让 Agent 执行过程更实时。
-- 增加浏览器渲染、PDF 解析和更复杂来源处理能力。
-- 增加生产级账号体系、HTTPS、审计日志和数据保留策略。
-
-## License
-
-License 尚未最终确定。
