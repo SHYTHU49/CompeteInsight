@@ -1,0 +1,91 @@
+
+/* Laptop layout: stack artifacts below the workbench on <=1366px widths. */
+
+@media (max-width: 1366px) {
+  html,
+  body,
+  #root {
+    height: auto;
+    min-height: 100%;
+    overflow: auto;
+  }
+
+  .product-shell {
+    display: grid;
+    grid-template-columns: 236px minmax(0, 1fr);
+    grid-template-rows: minmax(520px, 62vh) minmax(520px, auto);
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+  }
+
+  .left-rail {
+    width: auto;
+    max-width: none;
+    height: auto;
+    min-height: 0;
+  }
+
+  .conversation-pane {
+    height: auto;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .resize-handle {
+    display: none;
+  }
+
+  .artifact-pane {
+    grid-column: 1 / -1;
+    width: 100% !important;
+    height: auto;
+    min-height: 520px;
+    border-top: 1px solid var(--line);
+    border-left: 0;
+  }
+
+  .artifact-content,
+  .brief-view-wrap,
+  .report-view {
+    min-height: 520px;
+  }
+
+  .thread-scroll.landing-scroll {
+    min-height: 0;
+    padding: 16px 28px 18px;
+  }
+
+  .hero-copy h2 {
+    width: min(100%, 760px);
+    font-size: clamp(30px, 3.2vw, 38px);
+    line-height: 1.1;
+  }
+
+  .hero-copy p {
+    width: min(100%, 680px);
+  }
+
+  .intro-showcase,
+  .hero-resource-strip {
+    width: min(100%, 820px);
+  }
+
+  .intro-frame {
+    max-height: min(38dvh, 320px);
+  }
+}
+
+@media (max-width: 1366px) and (max-height: 760px) {
+  .product-shell {
+    grid-template-rows: minmax(500px, 68vh) minmax(500px, auto);
+  }
+
+  .hero-copy h2 {
+    font-size: clamp(28px, 3vw, 34px);
+  }
+
+  .intro-frame {
+    max-height: min(34dvh, 260px);
+  }
+}

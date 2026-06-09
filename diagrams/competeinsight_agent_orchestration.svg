@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 980" width="1600" height="980">
+  <rect x="0" y="0" width="1600" height="980" fill="#f8fafc"/>
+  <rect x="48" y="36" width="1504" height="892" rx="28" fill="#ffffff" stroke="#c7d2fe" stroke-width="3"/>
+
+  <text x="88" y="92" font-family="Arial, Microsoft YaHei, sans-serif" font-size="36" font-weight="700" fill="#0f172a">CompeteInsight Multi-Agent 编排</text>
+  <text x="90" y="128" font-family="Arial, Microsoft YaHei, sans-serif" font-size="18" fill="#64748b">五个研究 Agent 围绕 Evidence 覆盖度协作，Coverage Gate 决定是否补洞或进入最终报告。</text>
+
+  <rect x="96" y="168" width="1408" height="170" rx="24" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="130" y="208" font-family="Arial, Microsoft YaHei, sans-serif" font-size="20" font-weight="700" fill="#334155">1. 任务拆解与信息搜索</text>
+
+  <rect x="130" y="232" width="210" height="70" rx="16" fill="#ecfdf5" stroke="#86efac" stroke-width="2"/>
+  <text x="158" y="260" font-family="Arial, Microsoft YaHei, sans-serif" font-size="17" font-weight="700" fill="#166534">用户 Brief</text>
+  <text x="158" y="284" font-family="Arial, Microsoft YaHei, sans-serif" font-size="13" fill="#166534">目标产品、竞品、研究维度</text>
+
+  <text x="366" y="276" font-family="Arial, Microsoft YaHei, sans-serif" font-size="24" font-weight="700" fill="#64748b">→</text>
+
+  <rect x="420" y="210" width="246" height="114" rx="18" fill="#eff6ff" stroke="#93c5fd" stroke-width="2"/>
+  <text x="450" y="244" font-family="Arial, Microsoft YaHei, sans-serif" font-size="19" font-weight="700" fill="#1d4ed8">Planning Agent</text>
+  <text x="450" y="272" font-family="Arial, Microsoft YaHei, sans-serif" font-size="14" fill="#1e3a8a">拆分研究维度</text>
+  <text x="450" y="296" font-family="Arial, Microsoft YaHei, sans-serif" font-size="14" fill="#1e3a8a">生成 Query / source tasks</text>
+
+  <text x="692" y="276" font-family="Arial, Microsoft YaHei, sans-serif" font-size="24" font-weight="700" fill="#64748b">→</text>
+
+  <rect x="746" y="210" width="246" height="114" rx="18" fill="#f0fdf4" stroke="#86efac" stroke-width="2"/>
+  <text x="776" y="244" font-family="Arial, Microsoft YaHei, sans-serif" font-size="19" font-weight="700" fill="#15803d">Search Agent</text>
+  <text x="776" y="272" font-family="Arial, Microsoft YaHei, sans-serif" font-size="14" fill="#166534">批量 Query 快速铺底</text>
+  <text x="776" y="296" font-family="Arial, Microsoft YaHei, sans-serif" font-size="14" fill="#166534">Search LLM 针对性补充</text>
+
+  <text x="1018" y="276" font-family="Arial, Microsoft YaHei, sans-serif" font-size="24" font-weight="700" fill="#64748b">→</text>
+
+  <rect x="1072" y="210" width="260" height="114" rx="18" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/>
+  <text x="1102" y="244" font-family="Arial, Microsoft YaHei, sans-serif" font-size="19" font-weight="700" fill="#c2410c">抓取与正文抽取</text>
+  <text x="1102" y="272" font-family="Arial, Microsoft YaHei, sans-serif" font-size="14" fill="#7c2d12">HTTP Fetcher 清洗正文</text>
+  <text x="1102" y="296" font-family="Arial, Microsoft YaHei, sans-serif" font-size="14" fill="#7c2d12">保存 SourceDocument</text>
+
+  <text x="782" y="376" font-family="Arial, Microsoft YaHei, sans-serif" font-size="26" font-weight="700" fill="#94a3b8">↓</text>
+
+  <rect x="96" y="398" width="1408" height="188" rx="24" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="130" y="438" font-family="Arial, Microsoft YaHei, sans-serif" font-size="20" font-weight="700" fill="#334155">2. 证据抽取、结论审查与报告生成</text>
+
+  <rect x="130" y="466" width="270" height="92" rx="18" fill="#fefce8" stroke="#fde047" stroke-width="2"/>
+  <text x="160" y="498" font-family="Arial, Microsoft YaHei, sans-serif" font-size="19" font-weight="700" fill="#a16207">Evidence Agent</text>
+  <text x="160" y="526" font-family="Arial, Microsoft YaHei, sans-serif" font-size="14" fill="#713f12">从真实正文抽取 Evidence</text>
+  <text x="160" y="550" font-family="Arial, Microsoft YaHei, sans-serif" font-size="14" fill="#713f12">绑定 quote / URL / 维度 / 竞品</text>
+
+  <text x="426" y="520" font-family="Arial, Microsoft YaHei, sans-serif" font-size="24" font-weight="700" fill="#64748b">→</text>
+
+  <rect x="480" y="466" width="270" height="92" rx="18" fill="#fee2e2" stroke="#fca5a5" stroke-width="2"/>
+  <text x="510" y="498" font-family="Arial, Microsoft YaHei, sans-serif" font-size="19" font-weight="700" fill="#b91c1c">Analyze Agent</text>
+  <text x="510" y="526" font-family="Arial, Microsoft YaHei, sans-serif" font-size="14" fill="#7f1d1d">Evidence 聚合为 Claim</text>
+  <text x="510" y="550" font-family="Arial, Microsoft YaHei, sans-serif" font-size="14" fill="#7f1d1d">Red Team 反方审查与置信度</text>
+
+  <text x="776" y="520" font-family="Arial, Microsoft YaHei, sans-serif" font-size="24" font-weight="700" fill="#64748b">→</text>
+
+  <rect x="830" y="466" width="270" height="92" rx="18" fill="#f5f3ff" stroke="#c4b5fd" stroke-width="2"/>
+  <text x="860" y="498" font-family="Arial, Microsoft YaHei, sans-serif" font-size="19" font-weight="700" fill="#6d28d9">Report Agent</text>
+  <text x="860" y="526" font-family="Arial, Microsoft YaHei, sans-serif" font-size="14" fill="#4c1d95">生成 Summary / Full Report</text>
+  <text x="860" y="550" font-family="Arial, Microsoft YaHei, sans-serif" font-size="14" fill="#4c1d95">矩阵、引用来源、导出文件</text>
+
+  <text x="1126" y="520" font-family="Arial, Microsoft YaHei, sans-serif" font-size="24" font-weight="700" fill="#64748b">→</text>
+
+  <rect x="1180" y="466" width="270" height="92" rx="18" fill="#ecfeff" stroke="#67e8f9" stroke-width="2"/>
+  <text x="1210" y="498" font-family="Arial, Microsoft YaHei, sans-serif" font-size="19" font-weight="700" fill="#0e7490">AI Analysis Assistant</text>
+  <text x="1210" y="526" font-family="Arial, Microsoft YaHei, sans-serif" font-size="14" fill="#155e75">读取报告、Evidence、Claims</text>
+  <text x="1210" y="550" font-family="Arial, Microsoft YaHei, sans-serif" font-size="14" fill="#155e75">在研究上下文内继续追问</text>
+
+  <text x="782" y="624" font-family="Arial, Microsoft YaHei, sans-serif" font-size="26" font-weight="700" fill="#94a3b8">↓</text>
+
+  <rect x="260" y="646" width="1080" height="148" rx="24" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+  <text x="302" y="688" font-family="Arial, Microsoft YaHei, sans-serif" font-size="24" font-weight="700" fill="#0f172a">Coverage Gate：质量门禁与 Loop 决策</text>
+  <text x="302" y="724" font-family="Arial, Microsoft YaHei, sans-serif" font-size="16" fill="#475569">检查维度覆盖、竞品覆盖、来源多样性、Claim 置信度和反证风险。</text>
+  <text x="302" y="754" font-family="Arial, Microsoft YaHei, sans-serif" font-size="16" fill="#475569">每一轮结束后判断是否继续搜索；所有中间产物都写入 Artifact Store。</text>
+
+  <rect x="302" y="812" width="430" height="56" rx="18" fill="#fff1f2" stroke="#fecdd3" stroke-width="2"/>
+  <text x="330" y="836" font-family="Arial, Microsoft YaHei, sans-serif" font-size="16" font-weight="700" fill="#ef4444">信息不足</text>
+  <text x="414" y="836" font-family="Arial, Microsoft YaHei, sans-serif" font-size="16" font-weight="700" fill="#ef4444">→ 生成 gap_queries，回到 Search Agent 补充</text>
+  <text x="330" y="858" font-family="Arial, Microsoft YaHei, sans-serif" font-size="13" fill="#991b1b">补洞后再次进入 Evidence / Analyze，并重新评估覆盖度。</text>
+
+  <rect x="868" y="812" width="430" height="56" rx="18" fill="#ecfdf5" stroke="#86efac" stroke-width="2"/>
+  <text x="896" y="836" font-family="Arial, Microsoft YaHei, sans-serif" font-size="16" font-weight="700" fill="#16a34a">覆盖充分</text>
+  <text x="990" y="836" font-family="Arial, Microsoft YaHei, sans-serif" font-size="16" font-weight="700" fill="#16a34a">→ 进入 Report Agent 生成最终报告</text>
+  <text x="896" y="858" font-family="Arial, Microsoft YaHei, sans-serif" font-size="13" fill="#166534">报告、来源、Claim 与 Evidence 可互相回溯。</text>
+
+  <rect x="96" y="888" width="312" height="34" rx="17" fill="#e2e8f0"/>
+  <text x="128" y="910" font-family="Arial, Microsoft YaHei, sans-serif" font-size="14" font-weight="700" fill="#334155">Event Log：展示每个 Agent 状态</text>
+  <rect x="456" y="888" width="312" height="34" rx="17" fill="#e2e8f0"/>
+  <text x="488" y="910" font-family="Arial, Microsoft YaHei, sans-serif" font-size="14" font-weight="700" fill="#334155">Artifact Store：保存所有中间产物</text>
+  <rect x="816" y="888" width="312" height="34" rx="17" fill="#e2e8f0"/>
+  <text x="848" y="910" font-family="Arial, Microsoft YaHei, sans-serif" font-size="14" font-weight="700" fill="#334155">Evidence Trace：Claim 可回溯</text>
+  <rect x="1176" y="888" width="312" height="34" rx="17" fill="#e2e8f0"/>
+  <text x="1208" y="910" font-family="Arial, Microsoft YaHei, sans-serif" font-size="14" font-weight="700" fill="#334155">Final Output：报告 + 追问</text>
+</svg>

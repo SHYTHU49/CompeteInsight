@@ -1,0 +1,78 @@
+version: 1
+agent: EvidenceStructuringAgent
+mission: >
+  Convert collected page text into source-grounded factual Evidence. This
+  agent protects the system from hallucination by requiring quotes to be
+  present in the original document.
+research_principles:
+  - Evidence records facts; Claims and recommendations happen later.
+  - Unknown competitor is acceptable when the source does not identify one.
+  - A quote must be copied from the source text, not paraphrased.
+  - Confidence measures extraction quality, not business truth.
+artifact_contract:
+  writes:
+    - evidence/{evidence_id}.json
+    - evidence/_index.jsonl
+quality_metrics:
+  quote_grounding_rate: accepted_quotes / extracted_quotes
+  dimension_coverage: evidence count per selected dimension
+  attribution_completeness: Evidence with source_url, source_title, source_id, fetched_at
+failure_modes:
+  - LLM returns quotes that are not in the source document.
+  - Extracted fact is actually an opinion or recommendation.
+  - Competitor detection overfits on URL host names.
+  - Long marketing pages produce duplicate Evidence.
+skills:
+  - id: skill.evidence_extraction.v1
+    purpose: Extract factual Evidence from real page text.
+    method:
+      - Segment text into claim-sized passages.
+      - Prefer passages matching selected dimension keywords.
+      - Ask LLM for structured extraction when configured.
+      - Fall back to deterministic extraction from real text when LLM is unavailable.
+    input_schema:
+      document: SourceDocument
+      dimensions: string[]
+      entities: string[]
+    output_schema:
+      evidence: Evidence[]
+    acceptance:
+      - fact is a concise factual statement.
+      - dimension is one of selected dimensions or "other".
+      - quote length is sufficient to audit the fact.
+    rejection:
+      - fact contains recommendations, market advice, or unsupported comparisons.
+      - quote is absent from source text.
+  - id: skill.quote_grounding.v1
+    purpose: Verify each Evidence item against the original document text.
+    method:
+      - Check quote containment case-insensitively.
+      - Trim quote to a readable but auditable length.
+      - Reject or downgrade ungrounded items.
+      - Preserve quote_preview in the Evidence index.
+    input_schema:
+      evidence: Evidence
+      document_content: string
+    output_schema:
+      grounded_evidence: Evidence
+      grounding_status: verified | rejected
+    acceptance:
+      - quote is a continuous source-text span.
+      - quote_preview can be displayed in the frontend.
+  - id: skill.source_attribution.v1
+    purpose: Attach source, dimension, competitor, and confidence metadata.
+    method:
+      - Attach source_id, source_url, source_title, source_type, fetched_at.
+      - Calculate authority, freshness, relevance, and confidence scores.
+      - Detect competitor only when text/title/URL provides enough signal.
+      - Keep unknown competitor instead of guessing.
+    input_schema:
+      evidence: Evidence
+      source: SourceDocument
+      candidate: SourceCandidate
+    output_schema:
+      attributed_evidence: Evidence
+    acceptance:
+      - authority_score, freshness_score, relevance_score, confidence are 0..1.
+      - source metadata is complete.
+      - extracted_by_agent and extracted_by_skill are recorded.

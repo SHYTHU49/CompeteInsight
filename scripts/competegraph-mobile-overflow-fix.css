@@ -1,0 +1,53 @@
+
+/* Prevent narrow viewport horizontal overflow. */
+
+@media (max-width: 640px) {
+  html,
+  body,
+  #root,
+  .product-shell,
+  .left-rail,
+  .conversation-pane,
+  .artifact-pane,
+  .thread-scroll,
+  .thread-scroll.landing-scroll,
+  .hero-composer,
+  .hero-copy,
+  .intro-showcase,
+  .intro-frame,
+  .hero-resource-strip,
+  .run-header-bar,
+  .event-log-window,
+  .pipeline-bar {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+  }
+
+  .thread-scroll,
+  .thread-scroll.landing-scroll {
+    display: block;
+  }
+
+  .hero-composer {
+    display: grid;
+    justify-items: stretch;
+  }
+
+  .spark-chip {
+    justify-self: center;
+  }
+
+  .hero-copy h2 {
+    display: block;
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+
+  .intro-frame img {
+    max-width: 100%;
+  }
+}

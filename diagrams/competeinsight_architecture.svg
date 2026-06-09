@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 980" width="1600" height="980">
+  <rect x="0" y="0" width="1600" height="980" fill="#f8fafc"/>
+  <rect x="48" y="36" width="1504" height="892" rx="28" fill="#ffffff" stroke="#d8e1ec" stroke-width="2"/>
+
+  <text x="88" y="92" font-family="Arial, Microsoft YaHei, sans-serif" font-size="36" font-weight="700" fill="#0f172a">CompeteInsight 技术架构</text>
+  <text x="90" y="128" font-family="Arial, Microsoft YaHei, sans-serif" font-size="18" fill="#64748b">以可审计 Evidence 为核心，把竞品问题转化为来源、结论、报告和可继续追问的研究上下文。</text>
+
+  <rect x="90" y="166" width="1420" height="104" rx="22" fill="#eef6ff" stroke="#bfdbfe" stroke-width="2"/>
+  <text x="122" y="204" font-family="Arial, Microsoft YaHei, sans-serif" font-size="20" font-weight="700" fill="#1d4ed8">1. 访问与部署层</text>
+  <rect x="344" y="190" width="260" height="50" rx="14" fill="#ffffff" stroke="#93c5fd" stroke-width="2"/>
+  <text x="370" y="222" font-family="Arial, Microsoft YaHei, sans-serif" font-size="16" font-weight="700" fill="#1e3a8a">评委 / 用户浏览器</text>
+  <text x="630" y="222" font-family="Arial, Microsoft YaHei, sans-serif" font-size="22" font-weight="700" fill="#64748b">→</text>
+  <rect x="680" y="190" width="260" height="50" rx="14" fill="#ffffff" stroke="#93c5fd" stroke-width="2"/>
+  <text x="706" y="222" font-family="Arial, Microsoft YaHei, sans-serif" font-size="16" font-weight="700" fill="#1e3a8a">Nginx :18080</text>
+  <text x="966" y="222" font-family="Arial, Microsoft YaHei, sans-serif" font-size="22" font-weight="700" fill="#64748b">→</text>
+  <rect x="1016" y="190" width="300" height="50" rx="14" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/>
+  <text x="1042" y="222" font-family="Arial, Microsoft YaHei, sans-serif" font-size="16" font-weight="700" fill="#9a3412">Uvicorn 127.0.0.1:18000</text>
+
+  <text x="782" y="304" font-family="Arial, Microsoft YaHei, sans-serif" font-size="24" font-weight="700" fill="#94a3b8">↓</text>
+
+  <rect x="90" y="326" width="1420" height="154" rx="22" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="122" y="366" font-family="Arial, Microsoft YaHei, sans-serif" font-size="20" font-weight="700" fill="#334155">2. 应用服务层</text>
+  <rect x="158" y="392" width="290" height="58" rx="16" fill="#ecfdf5" stroke="#86efac" stroke-width="2"/>
+  <text x="184" y="417" font-family="Arial, Microsoft YaHei, sans-serif" font-size="17" font-weight="700" fill="#166534">React + Vite 工作台</text>
+  <text x="184" y="440" font-family="Arial, Microsoft YaHei, sans-serif" font-size="13" fill="#166534">登录 / Run / Artifacts / Report / Assistant</text>
+  <text x="474" y="427" font-family="Arial, Microsoft YaHei, sans-serif" font-size="22" font-weight="700" fill="#64748b">→</text>
+  <rect x="524" y="392" width="240" height="58" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="550" y="417" font-family="Arial, Microsoft YaHei, sans-serif" font-size="17" font-weight="700" fill="#334155">FastAPI Routers</text>
+  <text x="550" y="440" font-family="Arial, Microsoft YaHei, sans-serif" font-size="13" fill="#475569">runs / files / chat / skills</text>
+  <text x="790" y="427" font-family="Arial, Microsoft YaHei, sans-serif" font-size="22" font-weight="700" fill="#64748b">→</text>
+  <rect x="840" y="392" width="270" height="58" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="866" y="417" font-family="Arial, Microsoft YaHei, sans-serif" font-size="17" font-weight="700" fill="#334155">Auth + 用户隔离</text>
+  <text x="866" y="440" font-family="Arial, Microsoft YaHei, sans-serif" font-size="13" fill="#475569">签名 Cookie / Run owner / 文件保护</text>
+  <text x="1136" y="427" font-family="Arial, Microsoft YaHei, sans-serif" font-size="22" font-weight="700" fill="#64748b">→</text>
+  <rect x="1186" y="392" width="240" height="58" rx="16" fill="#fdf2f8" stroke="#f9a8d4" stroke-width="2"/>
+  <text x="1212" y="417" font-family="Arial, Microsoft YaHei, sans-serif" font-size="17" font-weight="700" fill="#9d174d">Artifact API</text>
+  <text x="1212" y="440" font-family="Arial, Microsoft YaHei, sans-serif" font-size="13" fill="#831843">读取 run 产物与导出文件</text>
+
+  <text x="782" y="514" font-family="Arial, Microsoft YaHei, sans-serif" font-size="24" font-weight="700" fill="#94a3b8">↓</text>
+
+  <rect x="90" y="536" width="1420" height="160" rx="22" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="122" y="576" font-family="Arial, Microsoft YaHei, sans-serif" font-size="20" font-weight="700" fill="#334155">3. ResearchPipeline 多 Agent 编排层</text>
+  <rect x="156" y="612" width="214" height="48" rx="24" fill="#dbeafe"/>
+  <text x="184" y="642" font-family="Arial, Microsoft YaHei, sans-serif" font-size="15" font-weight="700" fill="#1d4ed8">Planning：拆任务</text>
+  <text x="392" y="642" font-family="Arial, Microsoft YaHei, sans-serif" font-size="22" font-weight="700" fill="#64748b">→</text>
+  <rect x="442" y="612" width="214" height="48" rx="24" fill="#dcfce7"/>
+  <text x="470" y="642" font-family="Arial, Microsoft YaHei, sans-serif" font-size="15" font-weight="700" fill="#15803d">Search：搜索补洞</text>
+  <text x="678" y="642" font-family="Arial, Microsoft YaHei, sans-serif" font-size="22" font-weight="700" fill="#64748b">→</text>
+  <rect x="728" y="612" width="214" height="48" rx="24" fill="#fef3c7"/>
+  <text x="756" y="642" font-family="Arial, Microsoft YaHei, sans-serif" font-size="15" font-weight="700" fill="#a16207">Evidence：抽证据</text>
+  <text x="964" y="642" font-family="Arial, Microsoft YaHei, sans-serif" font-size="22" font-weight="700" fill="#64748b">→</text>
+  <rect x="1014" y="612" width="214" height="48" rx="24" fill="#fee2e2"/>
+  <text x="1042" y="642" font-family="Arial, Microsoft YaHei, sans-serif" font-size="15" font-weight="700" fill="#b91c1c">Analyze：审结论</text>
+  <text x="1250" y="642" font-family="Arial, Microsoft YaHei, sans-serif" font-size="22" font-weight="700" fill="#64748b">→</text>
+  <rect x="1300" y="612" width="150" height="48" rx="24" fill="#ede9fe"/>
+  <text x="1324" y="642" font-family="Arial, Microsoft YaHei, sans-serif" font-size="15" font-weight="700" fill="#6d28d9">Report</text>
+  <rect x="512" y="670" width="576" height="26" rx="13" fill="#fff1f2" stroke="#fecdd3" stroke-width="1"/>
+  <text x="548" y="689" font-family="Arial, Microsoft YaHei, sans-serif" font-size="13" font-weight="700" fill="#ef4444">Coverage Gate：覆盖不足时生成 gap queries 回到 Search；覆盖充分时进入报告生成</text>
+
+  <text x="782" y="730" font-family="Arial, Microsoft YaHei, sans-serif" font-size="24" font-weight="700" fill="#94a3b8">↓</text>
+
+  <rect x="90" y="752" width="1420" height="116" rx="22" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="122" y="792" font-family="Arial, Microsoft YaHei, sans-serif" font-size="20" font-weight="700" fill="#334155">4. 数据与外部能力层</text>
+  <rect x="158" y="814" width="288" height="40" rx="20" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/>
+  <text x="184" y="840" font-family="Arial, Microsoft YaHei, sans-serif" font-size="15" font-weight="700" fill="#9a3412">Tavily / Exa / Zhihu / DuckDuckGo</text>
+  <rect x="510" y="814" width="244" height="40" rx="20" fill="#ecfdf5" stroke="#86efac" stroke-width="2"/>
+  <text x="536" y="840" font-family="Arial, Microsoft YaHei, sans-serif" font-size="15" font-weight="700" fill="#166534">HTTP Fetcher + 正文抽取</text>
+  <rect x="818" y="814" width="244" height="40" rx="20" fill="#eff6ff" stroke="#93c5fd" stroke-width="2"/>
+  <text x="844" y="840" font-family="Arial, Microsoft YaHei, sans-serif" font-size="15" font-weight="700" fill="#1e40af">LLM：抽取 / 推理 / 写作</text>
+  <rect x="1126" y="814" width="300" height="40" rx="20" fill="#fdf2f8" stroke="#f9a8d4" stroke-width="2"/>
+  <text x="1152" y="840" font-family="Arial, Microsoft YaHei, sans-serif" font-size="15" font-weight="700" fill="#9d174d">data/runs：sources / evidence / reports</text>
+
+  <rect x="90" y="892" width="1420" height="26" rx="13" fill="#e2e8f0"/>
+  <circle cx="122" cy="905" r="7" fill="#0f766e"/>
+  <text x="144" y="911" font-family="Arial, Microsoft YaHei, sans-serif" font-size="14" fill="#475569">核心保证：来源、正文、Evidence、Claim、Report 全链路落盘，每条结论都可以回到原始来源核验。</text>
+</svg>

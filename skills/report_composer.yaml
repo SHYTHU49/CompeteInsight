@@ -1,0 +1,79 @@
+version: 1
+agent: ReportComposerAgent
+mission: >
+  Compose the final research archive. This agent turns reviewed Claims and
+  structured assets into readable local deliverables without hiding evidence
+  boundaries.
+research_principles:
+  - The report is a presentation layer over Evidence and Claims, not a new source of facts.
+  - Key conclusions must cite Evidence IDs.
+  - Methodology and uncertainty are part of the deliverable.
+  - Local files are the source of truth for audit and replay.
+artifact_contract:
+  writes:
+    - reports/report.md
+    - reports/report.json
+    - reports/executive_summary.md
+    - reports/methodology.md
+    - exports/evidence_matrix.csv
+quality_metrics:
+  citation_density: key conclusions with evidence_id references
+  appendix_completeness: evidence appendix rows / Evidence count
+  export_completeness: expected files written
+failure_modes:
+  - Report introduces unsupported facts not present in Claims.
+  - Evidence appendix omits source links or quotes.
+  - Recommendations are too vague to act on.
+  - Report hides low-confidence or challenged Claims.
+skills:
+  - id: skill.report_writing.v1
+    purpose: Compose a readable Markdown report from reviewed Claims and structured assets.
+    method:
+      - Start with executive summary and run metrics.
+      - Present competitor profiles and matrix.
+      - Present opportunity recommendations and battlecards.
+      - Include quality notes and Red Team findings.
+      - Include Evidence appendix.
+    input_schema:
+      claims: Claim[]
+      evidence: Evidence[]
+      matrix: CompetitorMatrix
+      recommendations: OpportunityRecommendation[]
+      battlecards: BattlecardItem[]
+      observability: ObservabilitySnapshot
+    output_schema:
+      markdown: string
+    acceptance:
+      - Report has executive summary, matrix, recommendations, risks, and appendix.
+      - Key conclusions include evidence_id references.
+      - Challenged Claims are worded cautiously.
+  - id: skill.citation_rendering.v1
+    purpose: Render source links and Evidence appendix entries consistently.
+    method:
+      - Render Evidence ID, dimension, competitor, source title, source URL, fact, quote.
+      - Keep source URLs clickable in Markdown.
+      - Keep quote text short enough for scanability but long enough for audit.
+    input_schema:
+      evidence: Evidence[]
+    output_schema:
+      appendix_markdown: string
+      evidence_matrix_csv: string
+    acceptance:
+      - Every Evidence item appears in JSON and index files.
+      - Appendix includes URL and quote.
+  - id: skill.local_export.v1
+    purpose: Save all run artifacts locally as Markdown, JSON, JSONL, and CSV.
+    method:
+      - Write report files under reports/.
+      - Write structured assets under exports/.
+      - Preserve status, trace, Evidence, Claim, source, and document files.
+      - Do not write to any database.
+    input_schema:
+      run_id: string
+      report: string
+      structured_assets: object
+    output_schema:
+      files: string[]
+    acceptance:
+      - Completed run directory is independently inspectable.
+      - report_path points to local static file route.

@@ -1,0 +1,88 @@
+version: 1
+agent: AnalysisAndReviewAgent
+mission: >
+  Turn Evidence into cautious, reviewable intelligence assets. This agent
+  performs both synthesis and adversarial review so that the first version
+  stays compact without sacrificing rigor.
+research_principles:
+  - Every Claim must cite existing Evidence.
+  - Red Team review is mandatory, not optional.
+  - Weak evidence produces cautious language and follow-up actions.
+  - Unknown matrix cells remain unknown; they are not filled for aesthetics.
+artifact_contract:
+  writes:
+    - claims/{claim_id}.json
+    - claims/_index.jsonl
+    - exports/matrix.json
+    - exports/matrix.csv
+    - exports/recommendations.json
+    - exports/recommendations.md
+    - exports/battlecards.json
+    - exports/battlecards.md
+    - exports/evidence_graph.json
+    - exports/observability.json
+quality_metrics:
+  claim_pass_rate: verified_claims / total_claims
+  challenge_rate: challenged_claims / total_claims
+  matrix_coverage: known_cells / total_cells
+  evidence_confidence_mean: average Evidence confidence
+failure_modes:
+  - Claim overgeneralizes from a single official page.
+  - User review source is treated as representative market evidence.
+  - Recommendation is not tied back to Claim or Evidence.
+  - Battlecard language becomes absolute or adversarial without evidence.
+skills:
+  - id: skill.claim_generation.v1
+    purpose: Aggregate Evidence into bounded, reviewable Claims.
+    method:
+      - Group Evidence by dimension and competitor.
+      - Select strongest supporting Evidence by confidence and source diversity.
+      - Generate one or more Claims per populated dimension.
+      - Attach reasoning_summary and supporting_evidence_ids.
+    input_schema:
+      evidence: Evidence[]
+    output_schema:
+      claims: Claim[]
+    acceptance:
+      - Each Claim cites at least one existing evidence_id.
+      - Claim states evidence scope and avoids universal market claims.
+      - confidence is lower when source diversity is weak.
+  - id: skill.red_team_review.v1
+    purpose: Challenge Claims for evidence sufficiency and wording risk.
+    method:
+      - Check supporting Evidence count.
+      - Check source domain diversity.
+      - Check confidence threshold.
+      - Rewrite risky wording with cautious qualifiers.
+      - Preserve suggested_action for follow-up collection.
+    input_schema:
+      claims: Claim[]
+      evidence: Evidence[]
+    output_schema:
+      reviewed_claims: Claim[]
+    acceptance:
+      - Risky Claims receive red_team_notes.
+      - verification_status is verified or needs_evidence.
+      - final_wording is set for report use.
+  - id: skill.asset_synthesis.v1
+    purpose: Build business-facing assets from reviewed Claims and Evidence.
+    method:
+      - Build competitor matrix by competitor x dimension.
+      - Build opportunity recommendations from strong/weak coverage patterns.
+      - Build battlecards from competitor strengths and target-product responses.
+      - Build evidence graph nodes and edges for traceability.
+      - Build observability quality gates.
+    input_schema:
+      reviewed_claims: Claim[]
+      evidence: Evidence[]
+      request: ResearchRequest
+    output_schema:
+      matrix: CompetitorMatrix
+      recommendations: OpportunityRecommendation[]
+      battlecards: BattlecardItem[]
+      evidence_graph: EvidenceGraph
+      observability: ObservabilitySnapshot
+    acceptance:
+      - Matrix unknown cells remain explicit.
+      - Recommendations include evidence_ids when possible.
+      - Battlecards avoid unsupported superiority claims.

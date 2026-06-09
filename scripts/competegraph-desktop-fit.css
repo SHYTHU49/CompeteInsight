@@ -1,0 +1,100 @@
+
+/* Desktop/laptop fit override. Keep the app usable on 1280-1440px screens. */
+
+@media (min-width: 1181px) {
+  .artifact-pane {
+    width: clamp(380px, 33vw, 520px) !important;
+  }
+
+  .conversation-pane {
+    min-width: 0;
+  }
+
+  .hero-copy,
+  .hero-copy h2,
+  .hero-copy p,
+  .intro-showcase,
+  .hero-resource-strip {
+    max-width: 100%;
+  }
+
+  .hero-copy h2 {
+    width: min(100%, 720px);
+    overflow-wrap: break-word;
+    text-wrap: balance;
+  }
+
+  .hero-resource-strip {
+    flex-wrap: wrap;
+  }
+
+  .hero-resource-strip > span {
+    flex: 1 1 260px;
+    white-space: normal;
+  }
+
+  .hero-resource-strip > div {
+    flex: 1 1 320px;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+}
+
+@media (min-width: 1181px) and (max-width: 1366px) {
+  .left-rail {
+    width: 236px;
+  }
+
+  .top-strip,
+  .artifact-head {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .thread-scroll.landing-scroll {
+    padding: 16px 24px 18px;
+  }
+
+  .hero-copy h2 {
+    width: min(100%, 600px);
+    font-size: clamp(30px, 3vw, 36px);
+    line-height: 1.12;
+  }
+
+  .hero-copy p {
+    width: min(100%, 560px);
+    font-size: 13.5px;
+  }
+
+  .intro-showcase,
+  .hero-resource-strip {
+    width: min(100%, 620px);
+  }
+
+  .intro-frame {
+    max-height: min(38dvh, 300px);
+  }
+
+  .report-content {
+    padding: 18px;
+  }
+}
+
+@media (min-width: 1181px) and (max-height: 760px) {
+  .hero-copy h2 {
+    font-size: clamp(28px, 2.8vw, 34px);
+  }
+
+  .hero-copy p {
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  .intro-frame {
+    max-height: min(36dvh, 280px);
+  }
+
+  .hero-resource-strip {
+    padding: 8px 10px;
+  }
+}

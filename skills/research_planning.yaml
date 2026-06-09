@@ -1,0 +1,88 @@
+version: 1
+agent: ResearchPlanningAgent
+mission: >
+  Turn an open-ended competitive research request into a bounded, auditable
+  research plan. This agent decides what should be researched, how sources
+  should be queried, and how conclusions will be judged.
+research_principles:
+  - Preserve user-supplied target product and competitors unless the user explicitly changes them.
+  - Prefer narrow, source-intent queries over broad market wording.
+  - Separate evidence requirements from report style requirements.
+  - Treat missing evidence as a research gap, not as permission to infer.
+artifact_contract:
+  writes:
+    - plan.json
+    - dag.json
+  must_include:
+    - research_goal
+    - competitors
+    - dimensions
+    - queries
+    - quality_rules
+    - required_agents
+quality_metrics:
+  query_coverage: proportion of dimensions with at least one query
+  source_intent_mix: official/pricing/docs/review/enterprise query balance
+  scope_clarity: whether dimensions and competitors are explicit
+failure_modes:
+  - Over-broad queries create noisy sources.
+  - Missing competitor aliases reduce recall.
+  - Quality rules become vague and cannot be checked downstream.
+skills:
+  - id: skill.scope_planning.v1
+    purpose: Normalize the user request into a precise research scope.
+    method:
+      - Extract target product, competitors, dimensions, audience, and research goal.
+      - Preserve explicit user choices and only fill defaults for missing dimensions.
+      - Record assumptions in plan.notes instead of hiding them.
+    input_schema:
+      project_name: string
+      target_product: string
+      competitors: string[]
+      analysis_dimensions: string[]
+      research_goal: string
+    output_schema:
+      research_goal: string
+      competitors: string[]
+      dimensions: string[]
+      notes: string
+    acceptance:
+      - dimensions use canonical keys from the backend schema.
+      - target_product is not duplicated in competitors.
+      - notes disclose all assumptions.
+  - id: skill.query_design.v1
+    purpose: Produce search-engine-ready queries and tool-call plans for real public-source discovery.
+    method:
+      - Generate queries per entity and per source intent.
+      - Convert high-level research needs into SourceTask tool calls with entity, dimension, intent, query, expected_source_types, and rationale.
+      - Include product-name variants when obvious.
+      - Prefer official, pricing, docs, changelog, security, review, and comparison intents.
+    input_schema:
+      competitors: string[]
+      dimensions: string[]
+      research_goal: string
+    output_schema:
+      queries: string[]
+      source_tasks: SourceTask[]
+    acceptance:
+      - Each query can be pasted directly into a search engine.
+      - Each SourceTask is executable by SearchTool without private browsing context.
+      - At least one query targets official/product information.
+      - Pricing, enterprise, and user_voice dimensions add targeted queries when selected.
+    rejection:
+      - Generic queries such as "market analysis" without product names.
+      - Queries that require private or paid data sources.
+  - id: skill.quality_contract.v1
+    purpose: Define downstream quality rules before collection starts.
+    method:
+      - Set Evidence requirements: URL, title, quote, fetched_at, source_type, confidence.
+      - Set Claim rules: cite evidence_id, mark low support, avoid absolute wording.
+      - Set report rules: distinguish fact, interpretation, recommendation, and uncertainty.
+    input_schema:
+      dimensions: string[]
+      research_goal: string
+    output_schema:
+      quality_rules: string[]
+    acceptance:
+      - Every rule can be checked by downstream code or displayed as a quality gate.
+      - Rules mention evidence sufficiency and citation requirements.

@@ -1,0 +1,85 @@
+# ============================================================
+# CompeteGraph - .gitignore
+# ============================================================
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
+dist/
+build/
+
+# --- Node / Frontend ---
+node_modules/
+.pnpm-store/
+.vite/
+dist/
+.turbo/
+*.tsbuildinfo
+
+# --- Env / Secrets ---
+.env
+.env.*
+.env.local
+.env.*.local
+**/.env
+**/.env.*
+backend/.env
+!backend/.env.example
+!**/.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+auth.json
+credentials.json
+
+# --- Editor ---
+.claude/
+.vscode/*
+!.vscode/settings.json.example
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# --- Runtime Data ---
+# 整个 data/ 目录都是运行时产物，不入 Git
+data/
+
+# 但保留以下示范数据 / 模板源文件
+!data/demo_replays/
+!data/demo_replays/**
+
+# 缓存绝不入 Git
+**/cache/
+
+# --- Logs ---
+*.log
+logs/
+
+# --- Local generated artifacts ---
+.tmp_screens/
+lark-cli-auth-qrcode.png
+competeinsight_submission.xml
+competeinsight_*_whiteboard.xml
+diagrams/*_preview*.png
+diagrams/*.openapi.json
+
+# --- OS ---
+.DS_Store
+Thumbs.db

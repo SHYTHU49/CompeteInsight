@@ -1,0 +1,530 @@
+
+/* Server-side responsive override for CompeteGraph. */
+
+@supports (height: 100dvh) {
+  .product-shell,
+  .left-rail,
+  .conversation-pane,
+  .resize-handle,
+  .artifact-pane {
+    height: 100dvh;
+  }
+}
+
+html,
+body,
+#root {
+  min-width: 320px;
+}
+
+.product-shell {
+  width: 100%;
+}
+
+.left-rail {
+  max-width: 28vw;
+}
+
+.top-strip,
+.artifact-head {
+  min-height: 62px;
+}
+
+.thread-scroll.landing-scroll {
+  align-items: stretch;
+  overflow-y: auto;
+}
+
+.hero-composer {
+  min-height: min-content;
+  max-height: none;
+  transform: none;
+}
+
+.intro-frame {
+  max-height: min(48dvh, 470px);
+}
+
+.view-switch,
+.report-tabs {
+  scrollbar-width: none;
+}
+
+.view-switch::-webkit-scrollbar,
+.report-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.report-tabs {
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.report-actions {
+  flex-shrink: 0;
+}
+
+.metrics-grid-5 {
+  grid-template-columns: repeat(5, minmax(58px, 1fr));
+}
+
+.matrix-preview table,
+.md-content table {
+  min-width: 520px;
+}
+
+.chat-input-row input {
+  min-width: 0;
+}
+
+.source-item-top,
+.claim-meta {
+  flex-wrap: wrap;
+}
+
+.source-score {
+  flex-shrink: 0;
+}
+
+@media (max-width: 1440px) and (min-width: 1181px) {
+  .left-rail {
+    width: 248px;
+  }
+
+  .top-strip,
+  .artifact-head {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .thread-scroll {
+    padding-left: clamp(16px, 2vw, 34px);
+    padding-right: clamp(16px, 2vw, 34px);
+  }
+
+  .report-content {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 1180px) {
+  html,
+  body,
+  #root {
+    height: auto;
+    min-height: 100%;
+    overflow: auto;
+  }
+
+  .product-shell {
+    display: grid;
+    grid-template-columns: 240px minmax(0, 1fr);
+    grid-template-rows: minmax(520px, 58vh) minmax(520px, auto);
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+  }
+
+  .left-rail {
+    width: auto;
+    max-width: none;
+    height: auto;
+    min-height: 0;
+  }
+
+  .conversation-pane {
+    height: auto;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .resize-handle {
+    display: none;
+  }
+
+  .artifact-pane {
+    grid-column: 1 / -1;
+    width: 100% !important;
+    height: auto;
+    min-height: 520px;
+    max-height: none;
+    border-top: 1px solid var(--line);
+    border-left: 0;
+  }
+
+  .artifact-content,
+  .brief-view-wrap,
+  .report-view {
+    min-height: 520px;
+  }
+
+  .artifact-scroll,
+  .brief-scroll,
+  .report-content {
+    max-height: none;
+  }
+
+  .thread-scroll.landing-scroll {
+    min-height: 0;
+  }
+
+  .hero-composer {
+    height: auto;
+    padding-block: 16px;
+  }
+
+  .intro-frame {
+    max-height: 420px;
+  }
+
+  .composer-target-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .composer-name-label,
+  .composer-desc-label {
+    grid-column: auto;
+  }
+
+  .advanced-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .metrics-grid-5 {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .product-shell {
+    display: block;
+  }
+
+  .left-rail {
+    width: 100%;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .home-icon-btn {
+    margin: 10px 14px 4px;
+  }
+
+  .brand-copy {
+    padding: 4px 14px 10px;
+  }
+
+  .new-thread {
+    margin: 0 12px 10px;
+  }
+
+  .rail-section {
+    max-height: 132px;
+    overflow: hidden;
+    padding-bottom: 8px;
+  }
+
+  .rail-label {
+    position: static;
+    padding-left: 2px;
+  }
+
+  .run-stack {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .run-row {
+    min-width: 220px;
+  }
+
+  .rail-footer {
+    display: none;
+  }
+
+  .conversation-pane,
+  .artifact-pane {
+    height: auto;
+    min-height: 0;
+    border-right: 0;
+  }
+
+  .top-strip {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    height: auto;
+    min-height: 58px;
+    align-items: flex-start;
+    padding: 10px 14px;
+  }
+
+  .top-strip h1 {
+    max-width: none;
+    white-space: normal;
+  }
+
+  .top-actions {
+    flex-shrink: 0;
+  }
+
+  .thread-scroll,
+  .run-header-bar,
+  .event-log-window,
+  .pipeline-bar {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .thread-scroll.landing-scroll {
+    min-height: auto;
+    padding: 16px 14px 20px;
+  }
+
+  .hero-copy h2 {
+    font-size: 30px;
+    line-height: 1.12;
+  }
+
+  .intro-showcase,
+  .hero-resource-strip {
+    width: 100%;
+  }
+
+  .intro-frame {
+    aspect-ratio: 16 / 10;
+    max-height: none;
+  }
+
+  .intro-caption,
+  .hero-resource-strip {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .hero-resource-strip > span {
+    white-space: normal;
+  }
+
+  .hero-resource-strip > div {
+    flex-wrap: wrap;
+  }
+
+  .artifact-head {
+    height: auto;
+    min-height: 56px;
+    padding: 10px 14px;
+  }
+
+  .view-switch {
+    padding: 8px 10px;
+  }
+
+  .artifact-pane,
+  .artifact-content,
+  .brief-view-wrap,
+  .report-view {
+    min-height: 0;
+  }
+
+  .artifact-scroll,
+  .brief-scroll {
+    overflow: visible;
+  }
+
+  .report-view {
+    margin: 8px 10px 12px;
+  }
+
+  .report-toolbar {
+    align-items: flex-start;
+    padding: 9px 10px;
+  }
+
+  .report-content {
+    padding: 16px 14px;
+    overflow: visible;
+  }
+
+  .report-content > .chat-panel {
+    min-height: 60vh;
+  }
+
+  .metrics-grid-5 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .top-strip {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .top-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .ghost-button,
+  .stop-button {
+    height: 32px;
+    padding: 0 10px;
+  }
+
+  .hero-copy h2 {
+    font-size: 26px;
+  }
+
+  .hero-copy p {
+    font-size: 13.5px;
+  }
+
+  .intro-frame {
+    aspect-ratio: 4 / 3;
+  }
+
+  .composer-overlay {
+    align-items: stretch;
+    padding: 10px;
+  }
+
+  .composer-modal {
+    width: 100%;
+    max-height: calc(100dvh - 20px);
+    border-radius: 16px;
+    padding: 16px;
+  }
+
+  .modal-header {
+    gap: 10px;
+  }
+
+  .composer-target-row,
+  .advanced-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .composer-footer {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .launch-button {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .metrics-grid-5,
+  .metrics-grid-4,
+  .metrics-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mini-stat {
+    min-height: 58px;
+  }
+
+  .report-toolbar {
+    flex-direction: column;
+  }
+
+  .report-tabs {
+    width: 100%;
+  }
+
+  .report-tabs button {
+    flex: 0 0 auto;
+  }
+
+  .report-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .chat-input-row {
+    align-items: stretch;
+  }
+
+  .chat-msg.user,
+  .chat-msg.assistant {
+    max-width: 100%;
+  }
+
+  .filter-bar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
+  .filter-bar button {
+    flex: 0 0 auto;
+  }
+
+  .trace-item-top {
+    display: grid;
+    grid-template-columns: 1fr auto;
+  }
+
+  .trace-agent {
+    grid-column: 1 / -1;
+  }
+
+  .trace-time {
+    justify-self: end;
+  }
+}
+
+@media (max-width: 420px) {
+  .thread-scroll,
+  .run-header-bar,
+  .event-log-window,
+  .pipeline-bar,
+  .artifact-scroll,
+  .brief-scroll,
+  .report-content {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .metrics-grid-5,
+  .metrics-grid-4,
+  .metrics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-resource-strip a {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .source-summary {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-height: 760px) and (min-width: 901px) {
+  .thread-scroll.landing-scroll {
+    padding: 12px clamp(16px, 2vw, 30px);
+  }
+
+  .hero-copy h2 {
+    font-size: clamp(26px, 3vw, 38px);
+  }
+
+  .hero-copy p {
+    font-size: 13.5px;
+  }
+
+  .spark-chip {
+    min-height: 26px;
+    font-size: 12px;
+  }
+
+  .intro-frame {
+    max-height: min(42dvh, 360px);
+  }
+}

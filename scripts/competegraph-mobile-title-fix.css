@@ -1,0 +1,26 @@
+
+/* Final mobile title width fix. */
+
+@media (max-width: 640px) {
+  .hero-copy {
+    display: grid !important;
+    justify-items: center !important;
+  }
+
+  .hero-copy h2 {
+    width: 320px !important;
+    max-width: calc(100vw - 48px) !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    font-size: 21px !important;
+    line-height: 1.18 !important;
+    text-wrap: balance;
+  }
+
+  .hero-copy p {
+    width: 330px !important;
+    max-width: calc(100vw - 44px) !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+}
