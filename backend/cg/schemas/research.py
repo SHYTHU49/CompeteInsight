@@ -41,7 +41,7 @@ class ResearchRequest(BaseModel):
         default="分析目标产品与竞品的公开资料，形成可溯源证据、结论与报告。", max_length=1000
     )
     seed_urls: list[str] = Field(default_factory=list)
-    max_sources: int = Field(default=10, ge=1, le=1000)
+    max_sources: int = Field(default=150, ge=1, le=1000)
     max_sources_per_query: int = Field(default=3, ge=1, le=8)
     auto_discover_sources: bool = True
     max_search_rounds: int = Field(default=3, ge=1, le=8)

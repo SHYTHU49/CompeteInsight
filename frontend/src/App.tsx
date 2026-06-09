@@ -1420,7 +1420,7 @@ function ResearchComposer({ draft, setDraft, submitting, onSubmit }: {
           <div className="advanced-grid">
             <label>
               <span>最大来源数</span>
-              <input type="number" min={5} max={1000} value={draft.maxSources} onChange={(e) => setDraft({ ...draft, maxSources: Number(e.target.value) || 15 })} />
+              <input type="number" min={5} max={1000} value={draft.maxSources} onChange={(e) => setDraft({ ...draft, maxSources: Number(e.target.value) || 150 })} />
             </label>
             <label>
               <span>每次查询结果数</span>
@@ -2062,7 +2062,7 @@ function defaultDraft(): DraftState {
     goal: "Analyze public evidence for Trae against Cursor, GitHub Copilot, and Windsurf. Produce positioning, pricing, enterprise readiness, user voice, opportunity points, and sales battlecards.",
     seedUrls: "",
     dimensions: ["positioning", "feature", "pricing", "user_voice", "enterprise", "strategy"],
-    maxSources: 15,
+    maxSources: 150,
     maxSourcesPerQuery: 3,
     maxSearchRounds: 3,
     showAdvanced: false,
