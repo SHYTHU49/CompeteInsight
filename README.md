@@ -1,82 +1,82 @@
 # CompeteInsight
 
-CompeteInsight 是一个证据优先的 AI 竞品分析工作台。它通过多 Agent 研究流水线，把一个粗略的竞品问题转化为公开来源、结构化 Evidence、经过反方审查的 Claim、竞品矩阵、Markdown 报告，以及可以继续追问的 AI Analysis Assistant。
+CompeteInsight is an evidence-first AI competitive analysis workspace. Through a multi-agent research pipeline, it turns a rough competitive research question into public sources, structured evidence, red-team-reviewed claims, competitor matrices, Markdown reports, and an AI Analysis Assistant for follow-up questions.
 
-项目面向 CIS AI 驱动竞品分析 Agent 挑战赛构建，目前更偏向公开演示和评审工作台，而不是完整企业级多租户 SaaS。
+The project is built for the CIS AI-Powered Competitive Analysis Agent Challenge. At this stage, it is optimized more as a public demo and judging workspace than as a full enterprise-grade multi-tenant SaaS product.
 
-## 核心能力
+## Core Capabilities
 
-- 从目标产品、竞品、研究目标、分析维度和可选种子链接启动一次竞品研究。
-- Planning Agent 将问题拆解为研究维度、搜索 Query、source tasks 和质量规则。
-- Search Agent 调用 Tavily、Exa、Zhihu、DuckDuckGo fallback 等公开搜索源，执行批量 Query 和定向补洞。
-- Fetcher 抓取公开网页正文，并保存可审计 SourceDocument。
-- Evidence Agent 从真实正文中抽取结构化 Evidence，保留 URL、quote、竞品、维度、置信度、新鲜度、权威性和相关性。
-- Analyze Agent 将 Evidence 聚合为 Claim，并加入 Red Team 风险审查和缺口评估。
-- Report Agent 生成 Summary、Full Report、Methodology、竞品矩阵、建议和导出文件。
-- AI Analysis Assistant 支持基于本次研究报告、Evidence 和 Claims 继续追问。
-- 每次 run 都以本地 artifact 形式保存在 `data/runs`，便于回溯和审计。
+* Start a competitive research run from a target product, competitors, research objective, analysis dimensions, and optional seed links.
+* The Planning Agent breaks the question down into research dimensions, search queries, source tasks, and quality rules.
+* The Search Agent calls public search sources such as Tavily, Exa, Zhihu, and DuckDuckGo fallback to execute batch queries and targeted gap-filling searches.
+* The Fetcher retrieves public webpage content and stores auditable `SourceDocument` records.
+* The Evidence Agent extracts structured evidence from real page content, preserving URL, quote, competitor, dimension, confidence, freshness, authority, and relevance.
+* The Analyze Agent aggregates evidence into claims, adds red-team risk review, and evaluates research gaps.
+* The Report Agent generates the summary, full report, methodology, competitor matrix, recommendations, and export files.
+* The AI Analysis Assistant supports follow-up questions based on the current research report, evidence, and claims.
+* Each run is stored as local artifacts under `data/runs`, making the research process traceable and auditable.
 
-## 技术架构
+## Technical Architecture
 
-![CompeteInsight 技术架构](diagrams/competeinsight_architecture.svg)
+![CompeteInsight Technical Architecture](diagrams/competeinsight_architecture.svg)
 
-系统采用前后端分离架构：
+The system uses a frontend-backend separated architecture:
 
-- 前端是 React + Vite 单页工作台，负责登录、研究启动、Agent Event Log、Artifacts、Report 和 AI Assistant 交互。
-- 后端是 FastAPI 服务，负责鉴权、run 管理、文件服务、聊天接口和 Agent 编排。
-- ResearchPipeline 串联 Planning、Search、Evidence、Analyze、Report 五个 Agent 节点。
-- 外部数据来自 Tavily、Exa、Zhihu 和 DuckDuckGo fallback，正文抽取使用 HTTPX、trafilatura 和 selectolax。
-- 数据层采用本地 artifact store，以 JSON、JSONL、Markdown、CSV 等格式保留完整研究产物。
+* The frontend is a React + Vite single-page workspace responsible for login, research kickoff, Agent Event Log, Artifacts, Report, and AI Assistant interactions.
+* The backend is a FastAPI service responsible for authentication, run management, file serving, chat APIs, and agent orchestration.
+* `ResearchPipeline` connects five agent nodes: Planning, Search, Evidence, Analyze, and Report.
+* External data comes from Tavily, Exa, Zhihu, and DuckDuckGo fallback. Content extraction is powered by HTTPX, trafilatura, and selectolax.
+* The data layer uses a local artifact store, preserving complete research outputs in JSON, JSONL, Markdown, CSV, and related formats.
 
-## Multi-Agent 编排
+## Multi-Agent Orchestration
 
-![CompeteInsight Multi-Agent 编排](diagrams/competeinsight_agent_orchestration.svg)
+![CompeteInsight Multi-Agent Orchestration](diagrams/competeinsight_agent_orchestration.svg)
 
-| Agent | 职责 | 关键输出 |
-| --- | --- | --- |
-| `ResearchPlanningAgent` | 理解用户研究目标，拆分竞品、维度、source tasks 和质量规则。 | `ResearchPlan`、`queries`、`quality_rules` |
-| `SourceResearchAgent` | 执行批量 Query，调用多搜索源，并根据缺口进行针对性补充。 | `SourceCandidate`、`SearchMemory` |
-| `EvidenceStructuringAgent` | 从真实正文中抽取事实、引用、来源、维度、竞品归属和置信度。 | `Evidence`、Evidence index |
-| `AnalysisAndReviewAgent` | 将 Evidence 聚合为 Claim，执行 Red Team 审查，并评估信息缺口。 | `Claim`、`RedTeamNote`、`ResearchFeedback` |
-| `ReportComposerAgent` | 生成可阅读竞品报告、执行摘要、方法说明、矩阵和导出文件。 | `Report`、`Matrix`、Recommendations、Battlecards |
+| Agent                      | Responsibility                                                                                                              | Key Outputs                                      |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| `ResearchPlanningAgent`    | Understands the user's research objective and breaks it down into competitors, dimensions, source tasks, and quality rules. | `ResearchPlan`, `queries`, `quality_rules`       |
+| `SourceResearchAgent`      | Executes batch queries, calls multiple search sources, and performs targeted supplementation based on coverage gaps.        | `SourceCandidate`, `SearchMemory`                |
+| `EvidenceStructuringAgent` | Extracts facts, quotes, sources, dimensions, competitor attribution, and confidence from real page content.                 | `Evidence`, Evidence index                       |
+| `AnalysisAndReviewAgent`   | Aggregates evidence into claims, performs red-team review, and evaluates information gaps.                                  | `Claim`, `RedTeamNote`, `ResearchFeedback`       |
+| `ReportComposerAgent`      | Generates readable competitive analysis reports, executive summaries, methodology notes, matrices, and export files.        | `Report`, `Matrix`, Recommendations, Battlecards |
 
-流水线里有一个 Coverage Gate：当 Evidence 覆盖不足、来源不够多样、Claim 置信度不足或存在明显反证风险时，系统会生成 gap queries 并回到 Search Agent 定向补洞；当覆盖度满足质量门禁时，才进入最终报告生成。
+The pipeline includes a Coverage Gate. When evidence coverage is insufficient, source diversity is too low, claim confidence is weak, or clear counter-evidence risks exist, the system generates gap queries and returns to the Search Agent for targeted gap-filling. Only after the coverage quality gate is satisfied does the pipeline proceed to final report generation.
 
-## 技术栈
+## Tech Stack
 
-- 前端：React 18、TypeScript、Vite、Framer Motion、Lucide icons。
-- 后端：FastAPI、Pydantic、Uvicorn、HTTPX。
-- LLM：OpenAI-compatible client，支持 Ark、DeepSeek、Qwen 等配置。
-- 搜索：Tavily、Exa、Zhihu API、DuckDuckGo fallback。
-- 正文抽取：HTTPX、selectolax、trafilatura。
-- 存储：本地 JSON、JSONL、Markdown、CSV artifacts。
-- 部署：Nginx、systemd、uv、pnpm。
+* Frontend: React 18, TypeScript, Vite, Framer Motion, Lucide icons.
+* Backend: FastAPI, Pydantic, Uvicorn, HTTPX.
+* LLM: OpenAI-compatible client with support for Ark, DeepSeek, Qwen, and related configurations.
+* Search: Tavily, Exa, Zhihu API, DuckDuckGo fallback.
+* Content extraction: HTTPX, selectolax, trafilatura.
+* Storage: local JSON, JSONL, Markdown, and CSV artifacts.
+* Deployment: Nginx, systemd, uv, pnpm.
 
-## 项目结构
+## Project Structure
 
 ```text
 backend/
   cg/
-    agents/          # Agent 实现与运行时辅助逻辑
+    agents/          # Agent implementations and runtime helpers
     api/             # FastAPI routers
     llm/             # OpenAI-compatible LLM client
-    orchestrator/    # ResearchPipeline 编排层
-    repositories/    # 本地 run / evidence 仓储
-    schemas/         # Pydantic 数据模型
-    tools/           # 搜索与正文抓取工具
+    orchestrator/    # ResearchPipeline orchestration layer
+    repositories/    # Local run / evidence repositories
+    schemas/         # Pydantic data models
+    tools/           # Search and content-fetching tools
 frontend/
   src/
     App.tsx
     styles/global.css
-skills/              # Agent workspace 使用的 skill 元数据
-scripts/             # 部署与初始化脚本
-diagrams/            # README 与提交文档使用的架构图
-data/                # 本地 run artifacts，生产部署不会覆盖服务器数据
+skills/              # Skill metadata used by the Agent workspace
+scripts/             # Deployment and initialization scripts
+diagrams/            # Architecture diagrams used in README and submission docs
+data/                # Local run artifacts; production deployment does not overwrite server data
 ```
 
-## 本地运行
+## Local Development
 
-### 后端
+### Backend
 
 ```bash
 cd backend
@@ -84,9 +84,9 @@ uv sync
 uv run uvicorn cg.main:app --reload
 ```
 
-默认 API 地址是 `http://localhost:8000`。
+The default API URL is `http://localhost:8000`.
 
-### 前端
+### Frontend
 
 ```bash
 cd frontend
@@ -94,11 +94,11 @@ pnpm install
 pnpm dev
 ```
 
-默认前端地址是 `http://localhost:5173`。
+The default frontend URL is `http://localhost:5173`.
 
-## 环境变量
+## Environment Variables
 
-在 `backend/.env` 中配置至少一个 LLM Provider。
+Configure at least one LLM provider in `backend/.env`.
 
 ```env
 CG_LLM_PROVIDER=ark
@@ -115,17 +115,17 @@ CG_AUTH_PASSWORD=change-me
 CG_AUTH_SECRET=replace-with-a-long-random-secret
 ```
 
-支持的 LLM Key 包括 `ARK_API_KEY`、`DEEPSEEK_API_KEY` 和 `QWEN_API_KEY`。
+Supported LLM API keys include `ARK_API_KEY`, `DEEPSEEK_API_KEY`, and `QWEN_API_KEY`.
 
-## 登录与用户隔离
+## Login and User Isolation
 
-当前 demo 使用轻量 cookie-session 登录机制：
+The current demo uses a lightweight cookie-session login mechanism:
 
-- `POST /api/login`
-- `POST /api/logout`
-- `GET /api/me`
+* `POST /api/login`
+* `POST /api/logout`
+* `GET /api/me`
 
-## 测试
+## Testing
 
 ```bash
 cd backend
@@ -135,23 +135,23 @@ cd ../frontend
 pnpm build
 ```
 
-## Demo Run 指标
+## Demo Run Metrics
 
-当前托管 demo 中包含一个 AI coding assistant landscape 的完成样例：
+The hosted demo currently includes a completed sample run for the AI coding assistant landscape:
 
-| 指标 | 数值 |
-| --- | ---: |
-| Source candidates | 282 |
-| Sources fetched | 276 |
-| Structured evidence | 479 |
-| Claims | 50 |
-| Verified claims | 33 |
-| Challenged claims | 17 |
-| Matrix cells | 24 |
-| Coverage score | 97.3% |
+| Metric              | Value |
+| ------------------- | ----: |
+| Source candidates   |   282 |
+| Sources fetched     |   276 |
+| Structured evidence |   479 |
+| Claims              |    50 |
+| Verified claims     |    33 |
+| Challenged claims   |    17 |
+| Matrix cells        |    24 |
+| Coverage score      | 97.3% |
 
-## 后续路线
+## Roadmap
 
-- 做 Evidence Graph，可视化 `Source -> Evidence -> Claim -> Recommendation`。
-- 增加报告版本管理、diff、采纳和回滚。
-- 增加 PM、销售、投资人、战略、Battlecard 等研究模板。
+* Build an Evidence Graph to visualize `Source -> Evidence -> Claim -> Recommendation`.
+* Add report versioning, diff, adoption, and rollback workflows.
+* Add research templates for PMs, sales teams, investors, strategy teams, battlecards, and more.
