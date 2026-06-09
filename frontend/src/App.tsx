@@ -890,11 +890,11 @@ function HeroResourceStrip() {
     <div className="hero-resource-strip" aria-label="Project resources">
       <span>Explore the project, watch a demo.</span>
       <div>
-        <a href="https://github.com/example/competegraph" target="_blank" rel="noreferrer">
+        <a href="https://github.com/SHYTHU49/CompeteInsight" target="_blank" rel="noreferrer">
           <Github size={15} />
           GitHub
         </a>
-        <a href="https://example.com/demo" target="_blank" rel="noreferrer">
+        <a href="https://www.bilibili.com/video/BV1NVE26dEQb?vd_source=2d164c8dfcd5927db00436a6804bda66" target="_blank" rel="noreferrer">
           <CirclePlay size={15} />
           Watch demo
         </a>
