@@ -56,7 +56,13 @@ ensure_uv() {
 deploy_files() {
   log "Deploying files to $APP_DIR"
   mkdir -p "$APP_DIR"
+  if [ -f "$APP_DIR/backend/.env" ]; then
+    cp "$APP_DIR/backend/.env" /tmp/competegraph_backend_env.keep
+  fi
   tar -xzf "$ARCHIVE" -C "$APP_DIR"
+  if [ -f /tmp/competegraph_backend_env.keep ]; then
+    mv /tmp/competegraph_backend_env.keep "$APP_DIR/backend/.env"
+  fi
   mkdir -p "$APP_DIR/data"
 }
 
