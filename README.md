@@ -30,7 +30,7 @@ The system uses a frontend-backend separated architecture:
 
 ## Multi-Agent Orchestration
 
-![CompeteInsight Multi-Agent Orchestration](Agent架构图.png)
+![CompeteInsight Multi-Agent Orchestration](agent-architecture.png)
 
 | Agent                      | Responsibility                                                                                                              | Key Outputs                                      |
 | -------------------------- | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
