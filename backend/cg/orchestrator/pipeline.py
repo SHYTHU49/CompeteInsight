@@ -1007,7 +1007,7 @@ class ResearchPipeline:
         trace_path = self.runs.run_dir(run_id) / "trace" / "events.jsonl"
         if not trace_path.exists():
             return
-        warning = "LLM 调用失败时已自动回退到确定性规则；详情见 trace/events.jsonl。"
+        warning = "检测到 LLM 调用异常；详情见 trace/events.jsonl。若发生在 Report 阶段，报告生成会停止并保留错误状态。"
         if warning in status.warnings:
             return
         text = trace_path.read_text(encoding="utf-8")

@@ -40,7 +40,7 @@ class BaseAgent:
             await self.record_llm_event(
                 "error",
                 "failed",
-                "LLM JSON call failed; deterministic fallback will be used",
+                "LLM JSON call failed; error recorded for review",
                 {"error_type": exc.__class__.__name__, "error": str(exc)[:500]},
             )
             return None
@@ -55,7 +55,7 @@ class BaseAgent:
             await self.record_llm_event(
                 "error",
                 "failed",
-                "LLM text call failed; deterministic fallback will be used",
+                "LLM text call failed; error recorded for review",
                 {"error_type": exc.__class__.__name__, "error": str(exc)[:500]},
             )
             return None
@@ -69,7 +69,7 @@ class BaseAgent:
             await self.record_llm_event(
                 "error",
                 "failed",
-                "LLM text call failed",
+                "LLM text call failed; report generation stopped",
                 {"error_type": exc.__class__.__name__, "error": str(exc)[:500]},
             )
             raise
