@@ -59,6 +59,7 @@ deploy_files() {
   if [ -f "$APP_DIR/backend/.env" ]; then
     cp "$APP_DIR/backend/.env" /tmp/competegraph_backend_env.keep
   fi
+  rm -rf "$APP_DIR/frontend/dist"
   tar -xzf "$ARCHIVE" -C "$APP_DIR"
   if [ -f /tmp/competegraph_backend_env.keep ]; then
     mv /tmp/competegraph_backend_env.keep "$APP_DIR/backend/.env"

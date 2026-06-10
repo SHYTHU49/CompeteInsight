@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   AlertCircle,
@@ -25,6 +25,7 @@ import {
   LogOut,
   Loader2,
   PanelRightOpen,
+  Pencil,
   Plus,
   RefreshCw,
   Repeat2,
@@ -494,6 +495,25 @@ export default function App() {
     }
   }
 
+  async function renameRun(runId: string, projectName: string) {
+    const nextName = projectName.trim();
+    if (!nextName) return;
+    try {
+      const r = await axios.patch<RunStatus>(`/api/runs/${runId}`, { project_name: nextName });
+      setRuns((prev) => prev.map((run) => (run.run_id === runId ? r.data : run)));
+      setDetail((prev) => (
+        prev?.status.run_id === runId
+          ? { ...prev, status: r.data, request: { ...prev.request, project_name: r.data.project_name } }
+          : prev
+      ));
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        setSession({ authenticated: false });
+      }
+      throw error;
+    }
+  }
+
   async function stopRun(runId = activeRunId) {
     if (!runId) return;
     setStopping(true);
@@ -582,6 +602,7 @@ export default function App() {
                 active={run.run_id === activeRunId}
                 onSelect={() => { setDetail(null); setActiveRunId(run.run_id); setView("report"); }}
                 onDelete={() => void deleteRun(run.run_id)}
+                onRename={(name) => renameRun(run.run_id, name)}
               />
             ))}
             {!runs.length && <p className="empty-note">No research runs yet.</p>}
@@ -729,7 +750,7 @@ export default function App() {
 }
 
 function LoginPage({ onLogin }: { onLogin: (username: string, password: string) => Promise<void> }) {
-  const [username, setUsername] = useState("");
+  const [username, setUsername] = useState("cis-test");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -907,18 +928,96 @@ function HeroResourceStrip() {
 // RunRow
 // ============================================================
 
-function RunRow({ run, active, onSelect, onDelete }: {
-  run: RunStatus; active: boolean; onSelect: () => void; onDelete: () => void;
+function RunRow({ run, active, onSelect, onDelete, onRename }: {
+  run: RunStatus; active: boolean; onSelect: () => void; onDelete: () => void; onRename: (projectName: string) => Promise<void>;
 }) {
+  const [editing, setEditing] = useState(false);
+  const [draftName, setDraftName] = useState(run.project_name);
+  const [renaming, setRenaming] = useState(false);
+  const renamingRef = useRef(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!editing) setDraftName(run.project_name);
+  }, [editing, run.project_name]);
+
+  useEffect(() => {
+    if (editing) inputRef.current?.select();
+  }, [editing]);
+
+  async function commitRename() {
+    if (renamingRef.current) return;
+    const trimmed = draftName.trim();
+    if (!trimmed || trimmed === run.project_name) {
+      setDraftName(run.project_name);
+      setEditing(false);
+      return;
+    }
+    renamingRef.current = true;
+    setRenaming(true);
+    try {
+      await onRename(trimmed);
+      setEditing(false);
+    } catch (error) {
+      console.error("Rename failed", error);
+      setDraftName(run.project_name);
+    } finally {
+      renamingRef.current = false;
+      setRenaming(false);
+    }
+  }
+
+  function handleRenameKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      void commitRename();
+    }
+    if (event.key === "Escape") {
+      event.preventDefault();
+      setDraftName(run.project_name);
+      setEditing(false);
+    }
+  }
+
   return (
     <div className={`run-row ${active ? "active" : ""}`} onClick={onSelect}>
       <span className={`status-dot ${run.status}`} />
       <span className="run-row-text">
-        <strong>{run.project_name}</strong>
+        {editing ? (
+          <input
+            ref={inputRef}
+            className="run-name-input"
+            value={draftName}
+            onChange={(event) => setDraftName(event.target.value)}
+            onBlur={() => void commitRename()}
+            onClick={(event) => event.stopPropagation()}
+            onKeyDown={handleRenameKeyDown}
+            disabled={renaming}
+            aria-label="Research run name"
+          />
+        ) : (
+          <strong>{run.project_name}</strong>
+        )}
         <small>{run.target_product} · {formatShortDate(run.started_at)}</small>
       </span>
       <button
-        className="run-row-delete"
+        className="run-row-icon run-row-edit-button"
+        title={editing ? "Save name" : "Rename run"}
+        onMouseDown={(event) => event.preventDefault()}
+        onClick={(e) => {
+          e.stopPropagation();
+          if (editing) {
+            void commitRename();
+          } else {
+            setEditing(true);
+          }
+        }}
+        disabled={renaming}
+      >
+        {renaming ? <Loader2 size={12} className="spin" /> : editing ? <CheckCircle2 size={13} /> : <Pencil size={12} />}
+      </button>
+      <button
+        className="run-row-icon run-row-delete"
         title="Delete run"
         onClick={(e) => { e.stopPropagation(); onDelete(); }}
       >
@@ -1024,13 +1123,57 @@ function EventTimeline({ events, plan, sources }: {
   );
 }
 
+function ExpandableText({
+  text,
+  limit = 180,
+  className,
+  as = "p",
+  quoted = false,
+}: {
+  text?: string | null;
+  limit?: number;
+  className?: string;
+  as?: "p" | "div" | "blockquote" | "span";
+  quoted?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const value = (text ?? "").trim();
+  if (!value) return null;
+
+  const isLong = value.length > limit;
+  const display = open || !isLong ? value : `${value.slice(0, limit).trimEnd()}...`;
+  const content = quoted ? `"${display}"` : display;
+  const children = (
+    <>
+      {content}
+      {isLong && (
+        <button
+          className="expand-text-button"
+          type="button"
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            setOpen((prev) => !prev);
+          }}
+        >
+          {open ? "Show less" : "Show more"}
+        </button>
+      )}
+    </>
+  );
+
+  if (as === "blockquote") return <blockquote className={className}>{children}</blockquote>;
+  if (as === "div") return <div className={className}>{children}</div>;
+  if (as === "span") return <span className={className}>{children}</span>;
+  return <p className={className}>{children}</p>;
+}
+
 function TraceItem({ event, sources, plan }: {
   event: TraceEvent;
   sources: SourceCandidate[];
   plan?: ResearchPlan | null;
 }) {
   const [open, setOpen] = useState(false);
-  const [messageOpen, setMessageOpen] = useState(false);
   const meta = AGENT_META[normalizeStage(event.node)];
   const isError = event.phase === "error";
   const isComplete = event.phase === "complete";
@@ -1040,8 +1183,6 @@ function TraceItem({ event, sources, plan }: {
   const url = payload.url as string | undefined;
   const count = payload.count as number | undefined;
   const traceMessage = formatTraceMessage(event);
-  const isLongMessage = traceMessage.length > 150;
-  const displayMessage = isLongMessage && !messageOpen ? `${traceMessage.slice(0, 150)}...` : traceMessage;
 
   // Cross-reference URL with sources for snippet
   const matchedSource = url ? sources.find((s) => s.url === url) : undefined;
@@ -1064,14 +1205,7 @@ function TraceItem({ event, sources, plan }: {
           <span className="trace-agent" style={{ color: meta?.color ?? "var(--muted)" }}>
             {meta?.shortLabel ?? agentLabel(event.node)}
           </span>
-          <span className="trace-msg">
-            {displayMessage}
-            {isLongMessage && (
-              <button className="trace-inline-expand" type="button" onClick={() => setMessageOpen((p) => !p)}>
-                {messageOpen ? "收起" : "查看完整"}
-              </button>
-            )}
-          </span>
+          <ExpandableText as="span" className="trace-msg" text={traceMessage} limit={180} />
           <time className="trace-time">{formatTime(event.timestamp)}</time>
         </div>
 
@@ -1091,7 +1225,7 @@ function TraceItem({ event, sources, plan }: {
         )}
 
         {matchedSource?.snippet && (
-          <div className="trace-snippet">"{matchedSource.snippet.slice(0, 140)}"</div>
+          <ExpandableText as="div" className="trace-snippet" text={matchedSource.snippet} limit={180} quoted />
         )}
 
         {count !== undefined && count > 0 && (
@@ -1157,7 +1291,7 @@ function PayloadDetail({ payload }: { payload: Record<string, unknown> }) {
               </a>
             )}
             {(item.snippet ?? item.excerpt) != null && (
-              <p>{String(item.snippet ?? item.excerpt).slice(0, 160)}</p>
+              <ExpandableText className="payload-result-text" text={String(item.snippet ?? item.excerpt)} limit={180} />
             )}
           </div>
         ))}
@@ -1691,16 +1825,19 @@ function SourcesView({ sources }: { sources: SourceCandidate[] }) {
         </>
       )}
       {sorted.map((s) => (
-        <a className="source-item" href={s.url} target="_blank" rel="noreferrer" key={s.url + s.query}>
+        <article className="source-item" key={s.url + s.query}>
           <div className="source-item-top">
             <span className="source-type-tag">{s.source_type}</span>
             {s.source_provider && <span className="source-provider">{s.source_provider}</span>}
             <span className="source-score">{Math.round(s.score * 100)}%</span>
           </div>
-          <strong>{s.title || host(s.url)}</strong>
+          <a className="source-title-link" href={s.url} target="_blank" rel="noreferrer">
+            <strong>{s.title || host(s.url)}</strong>
+            <ExternalLink size={11} />
+          </a>
           <small>{host(s.url)}</small>
-          {s.snippet && <p className="source-snippet">{s.snippet.slice(0, 120)}</p>}
-        </a>
+          <ExpandableText className="source-snippet" text={s.snippet} limit={180} />
+        </article>
       ))}
       {!sources.length && <p className="empty-note">No sources discovered yet.</p>}
     </div>
@@ -1731,7 +1868,7 @@ function EvidenceView({ evidence }: { evidence: EvidenceSummary[] }) {
             <ConfidenceBar value={item.confidence} />
           </div>
           <strong>{item.fact}</strong>
-          {item.quote_preview && <blockquote className="evidence-quote">"{item.quote_preview}"</blockquote>}
+          <ExpandableText as="blockquote" className="evidence-quote" text={item.quote_preview} limit={220} quoted />
           <a href={item.source_url} target="_blank" rel="noreferrer" className="evidence-source">
             <Globe2 size={12} />
             {item.source_title || host(item.source_url)}
@@ -1793,7 +1930,7 @@ function ClaimCard({ claim }: { claim: Claim }) {
         <span className="claim-status">{claim.verification_status}</span>
         <span className="claim-evidence">{claim.supporting_evidence_ids.length} supporting evidence</span>
       </div>
-      {claim.reasoning_summary && <p className="claim-reasoning">{claim.reasoning_summary}</p>}
+      <ExpandableText className="claim-reasoning" text={claim.reasoning_summary} limit={220} />
       {claim.red_team_notes.length > 0 && (
         <div className="red-team-section">
           <button className="red-team-toggle" onClick={() => setOpen((p) => !p)}>

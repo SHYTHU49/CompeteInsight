@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 
 from cg.auth import require_session_user
@@ -17,6 +17,10 @@ router = APIRouter(prefix="/api", tags=["runs"])
 
 class ChatMessage(BaseModel):
     message: str
+
+
+class RenameRunRequest(BaseModel):
+    project_name: str = Field(min_length=1, max_length=120)
 
 
 class SuggestCompetitorsRequest(BaseModel):
@@ -98,6 +102,25 @@ async def get_run(run_id: str, username: str = Depends(require_session_user)) ->
         repo = RunRepository(settings.data_dir)
         await repo.mark_stale_running(settings.cg_run_stale_after_seconds, owner=username)
         return await repo.detail(run_id, owner=username)
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=f"Run not found: {run_id}") from exc
+    except PermissionError as exc:
+        raise HTTPException(status_code=404, detail=f"Run not found: {run_id}") from exc
+
+
+@router.patch("/runs/{run_id}", response_model=RunStatus)
+async def rename_run(
+    run_id: str,
+    body: RenameRunRequest,
+    username: str = Depends(require_session_user),
+) -> RunStatus:
+    name = body.project_name.strip()
+    if not name:
+        raise HTTPException(status_code=422, detail="Project name cannot be empty.")
+    try:
+        settings = get_settings()
+        repo = RunRepository(settings.data_dir)
+        return await repo.rename_run(run_id, name, owner=username)
     except FileNotFoundError as exc:
         raise HTTPException(status_code=404, detail=f"Run not found: {run_id}") from exc
     except PermissionError as exc:

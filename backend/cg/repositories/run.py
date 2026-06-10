@@ -199,6 +199,13 @@ class RunRepository:
         battlecards_data = await read_json(run_dir / "exports" / "battlecards.json", [])
         observability_data = await read_json(run_dir / "exports" / "observability.json")
         graph_data = await read_json(run_dir / "exports" / "evidence_graph.json")
+        evidence_summaries: list[EvidenceSummary] = []
+        for row in evidence_rows:
+            full_evidence = await read_json(run_dir / "evidence" / f"{row.get('evidence_id')}.json")
+            if full_evidence and full_evidence.get("quote"):
+                row = {**row, "quote_preview": full_evidence["quote"]}
+            evidence_summaries.append(EvidenceSummary(**row))
+
         return RunDetail(
             status=status,
             request=request,
@@ -206,7 +213,7 @@ class RunRepository:
             dag=dag_data,
             sources=[SourceCandidate(**row) for row in source_rows],
             documents=[SourceDocument(**row) for row in doc_rows],
-            evidence=[EvidenceSummary(**row) for row in evidence_rows],
+            evidence=evidence_summaries,
             claims=[Claim(**row) for row in claim_rows],
             trace=[TraceEvent(**row) for row in trace_rows],
             matrix=CompetitorMatrix(**matrix_data) if matrix_data else None,
@@ -223,6 +230,21 @@ class RunRepository:
     async def set_metrics(self, run_id: str, metrics: RunMetrics) -> RunStatus:
         status = await self.load_status(run_id)
         status.metrics = metrics
+        await self.save_status(status)
+        return status
+
+    async def rename_run(
+        self,
+        run_id: str,
+        project_name: str,
+        owner: str | None = None,
+    ) -> RunStatus:
+        run_dir = self.run_dir(run_id)
+        status = await self.assert_access(run_id, owner)
+        request = await self.load_request(run_id)
+        status.project_name = project_name
+        request.project_name = project_name
+        await atomic_write_json(run_dir / "manifest.json", request)
         await self.save_status(status)
         return status
 
