@@ -202,7 +202,6 @@ class ResearchPipeline:
                     )
                     await atomic_write_json(self.runs.run_dir(run_id) / "plan.json", plan)
                     await atomic_write_json(self.runs.run_dir(run_id) / "dag.json", build_dag_snapshot(plan))
-                    await self.sync_llm_warnings(run_id, status)
 
                 # ── Source Research（ReAct 自主搜索）──
                 async with self.node(run_id, status, "SourceResearchAgent",
@@ -294,7 +293,6 @@ class ResearchPipeline:
                     await self.runs.save_status(status)
                     if not all_evidence:
                         status.warnings.append("抓取完成，但没有抽取到有效 Evidence。")
-                    await self.sync_llm_warnings(run_id, status)
 
                 # ── Analysis & Review（含缺口评估）──
                 async with self.node(run_id, status, "AnalysisAndReviewAgent",
@@ -334,8 +332,6 @@ class ResearchPipeline:
                         {"loop_round": loop_round, "needs_more": feedback.needs_more_research,
                          "gap_count": len(feedback.gaps), "coverage": coverage_score},
                     )
-
-                    await self.sync_llm_warnings(run_id, status)
 
                 # 是否继续循环
                 if not feedback.needs_more_research or loop_round >= max_loops or len(all_candidates) >= request.max_sources:
@@ -421,7 +417,6 @@ class ResearchPipeline:
                     artifacts["matrix"], artifacts["recommendations"],
                     artifacts["battlecards"], artifacts["observability"],
                 )
-                await self.sync_llm_warnings(run_id, status)
 
             status.status = "completed"
             status.current_stage = "Completed"
@@ -1002,19 +997,6 @@ class ResearchPipeline:
             payload=payload or {},
         )
         await append_jsonl(self.runs.run_dir(run_id) / "trace" / "events.jsonl", event)
-
-    async def sync_llm_warnings(self, run_id: str, status: RunStatus) -> None:
-        trace_path = self.runs.run_dir(run_id) / "trace" / "events.jsonl"
-        if not trace_path.exists():
-            return
-        warning = "检测到 LLM 调用异常；详情见 trace/events.jsonl。若发生在 Report 阶段，报告生成会停止并保留错误状态。"
-        if warning in status.warnings:
-            return
-        text = trace_path.read_text(encoding="utf-8")
-        if "LLM JSON call failed" in text or "LLM text call failed" in text:
-            status.warnings.append(warning)
-            await self.runs.save_status(status)
-
 
 def build_dag_snapshot(plan: ResearchPlan) -> dict:
     requested = set(plan.required_agents or [])
