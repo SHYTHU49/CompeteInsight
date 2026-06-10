@@ -8,7 +8,7 @@ import re
 import time
 from typing import Any
 
-from openai import AsyncOpenAI
+from openai import APIConnectionError, APITimeoutError, AsyncOpenAI
 from openai import RateLimitError
 
 from cg.settings import Settings, get_settings
@@ -53,7 +53,7 @@ class LLMClient:
                     ],
                 )
                 return response.choices[0].message.content or ""
-            except RateLimitError as exc:
+            except (APIConnectionError, APITimeoutError, RateLimitError) as exc:
                 last_error = exc
                 if attempt >= self.settings.cg_llm_max_retries:
                     raise

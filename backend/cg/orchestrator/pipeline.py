@@ -904,14 +904,24 @@ class ResearchPipeline:
         battlecards: list[BattlecardItem],
         observability: ObservabilitySnapshot,
     ) -> None:
-        by_evidence = {ev.evidence_id: ev for ev in evidence}
-        report = await ReportComposerAgent(self.agent_context(run_id)).write(
+        composer = ReportComposerAgent(self.agent_context(run_id))
+        report = await composer.write(
             request,
             evidence,
             claims,
             metrics,
         )
-        composer = ReportComposerAgent(self.agent_context(run_id))
+        if is_report_fallback(report):
+            report = build_analysis_report(
+                request,
+                evidence,
+                claims,
+                metrics,
+                matrix,
+                recommendations,
+                battlecards,
+                observability,
+            )
         executive_summary = await composer.write_executive_summary(
             request,
             evidence,
@@ -949,7 +959,7 @@ class ResearchPipeline:
         )
         await write_text(
             run_dir / "exports" / "evidence_matrix.csv",
-            build_evidence_csv(evidence, by_evidence),
+            build_evidence_csv(evidence, {ev.evidence_id: ev for ev in evidence}),
         )
 
     @asynccontextmanager
@@ -1887,6 +1897,19 @@ def build_analysis_report(
             ]
         )
     return "\n".join(lines)
+
+
+def is_report_fallback(report: str) -> bool:
+    text = report.strip()
+    if not text:
+        return True
+    fallback_markers = [
+        "报告生成失败",
+        "当前 LLM API 无法使用",
+        "LLM API 无法使用",
+        "无法生成竞品分析报告",
+    ]
+    return any(marker in text for marker in fallback_markers)
 
 
 def build_evidence_gaps(matrix: CompetitorMatrix) -> list[str]:

@@ -63,6 +63,7 @@ try {
         backend/.env `
         frontend/dist `
         scripts/init_data.py `
+        scripts/regenerate_report.py `
         skills
 }
 finally {
