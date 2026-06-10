@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from collections import Counter
 from datetime import datetime, timezone
 from typing import Any, Awaitable, Callable
@@ -1530,97 +1531,22 @@ class ReportComposerAgent(BaseAgent):
         artifacts: dict[str, Any] | None = None,
     ) -> str:
         if not self.llm_enabled:
-            return _llm_unavailable_report(request)
+            raise RuntimeError("LLM is not configured; report generation cannot continue")
 
-        # Build citation index: evidence_id -> sequential number, deduplicated by URL
-        citation_map: dict[str, int] = {}
-        references: list[str] = []
-        seen_urls: dict[str, int] = {}
-        for ev in sorted(evidence, key=lambda e: e.confidence, reverse=True):
-            if ev.evidence_id in citation_map:
-                continue
-            url_key = ev.source_url.rstrip("/").lower()
-            if url_key in seen_urls:
-                citation_map[ev.evidence_id] = seen_urls[url_key]
-            else:
-                n = len(references) + 1
-                citation_map[ev.evidence_id] = n
-                seen_urls[url_key] = n
-                title = ev.source_title or ev.title or ev.source_url
-                references.append(f"[{n}] {title}. {ev.source_url}")
-            if len(references) >= 250:
-                break
-
-        def cite(ev_ids: list[str], limit: int = 4) -> str:
-            seen: list[int] = []
-            for eid in ev_ids:
-                n = citation_map.get(eid)
-                if n and n not in seen:
-                    seen.append(n)
-                if len(seen) >= limit:
-                    break
-            return "".join(f"[{n}]" for n in seen)
-
-        # Organize evidence by dimension -> competitor
-        # Sort by combined score: 60% confidence + 40% freshness → prefer recent, high-quality evidence
-        from collections import defaultdict
-
-        def combined_score(ev: Evidence) -> float:
-            return 0.6 * ev.confidence + 0.4 * ev.freshness_score
-
-        dim_comp_ev: dict[str, dict[str, list[Evidence]]] = defaultdict(lambda: defaultdict(list))
-        for ev in sorted(evidence, key=combined_score, reverse=True):
-            comp = ev.competitor or "其他"
-            dim_comp_ev[ev.dimension][comp].append(ev)
-
-        dimensions = request.analysis_dimensions or list(dim_comp_ev.keys())
-        all_entities = [request.target_product] + list(request.competitors)
-
-        def fmt_fact(ev: Evidence) -> str:
-            date_tag = (
-                f"（{ev.published_at.strftime('%Y-%m')}）"
-                if ev.published_at else ""
-            )
-            return f"{ev.fact}{date_tag}{cite([ev.evidence_id])}"
-
-        evidence_context_parts: list[str] = []
-        for dim in dimensions:
-            dim_label = DIMENSION_LABELS.get(dim, dim)
-            comp_ev = dim_comp_ev.get(dim)
-            if not comp_ev:
-                continue
-            evidence_context_parts.append(f"### {dim_label}")
-            for comp in all_entities:
-                evs = comp_ev.get(comp, [])[:4]
-                if evs:
-                    evidence_context_parts.append(f"**{comp}**：")
-                    for ev in evs:
-                        evidence_context_parts.append(f"- {fmt_fact(ev)}")
-            evidence_context_parts.append("")
-        evidence_context = "\n".join(evidence_context_parts)
-
-        # Distilled claims as analytical anchors (clean text + citations only)
-        dim_claims: dict[str, list[Claim]] = defaultdict(list)
-        for c in sorted(claims, key=lambda c: c.confidence, reverse=True):
-            if c.verification_status not in ("rejected",):
-                dim_claims[c.dimension].append(c)
-        claims_parts: list[str] = []
-        for dim in dimensions:
-            label = DIMENSION_LABELS.get(dim, dim)
-            cs = dim_claims.get(dim, [])[:3]
-            if cs:
-                claims_parts.append(f"**{label}维度核心结论：**")
-                for c in cs:
-                    text = (c.final_wording or c.claim)[:200]
-                    claims_parts.append(f"- {text}{cite(c.supporting_evidence_ids)}")
-        claims_context = "\n".join(claims_parts)
-
-        # Build compact reference list for the report footer (injected after LLM write)
+        artifacts = artifacts or {}
+        citation_map, references = self._build_citation_index(
+            evidence,
+            claims,
+            artifacts.get("recommendations") or [],
+            max_references=150,
+        )
+        brief = self._build_report_brief(request, evidence, claims, metrics, artifacts, citation_map)
         ref_text = "\n".join(references)
 
-        markdown = await self.invoke_text(
+        markdown = await self.invoke_text_strict(
             system=(
                 "你是一名专业的产品竞争情报分析师，正在撰写一份供产品团队、市场团队和高管阅读的竞品分析报告。\n"
+                "你只能基于用户提供的 briefing notes 写作，不得编造 briefing notes 之外的事实、数据或来源。\n"
                 "\n"
                 "【硬性禁止】报告正文中不得出现以下任何内容：\n"
                 "- '维度覆盖度'、'覆盖度约X%'、'该维度共关联N条Evidence'\n"
@@ -1640,6 +1566,8 @@ class ReportComposerAgent(BaseAgent):
                 "7. 每个关键判断后用方括号标注来源编号，如[1][3]，不要暴露内部ID\n"
                 "8. 证据条目后附有（YYYY-MM）格式的发布月份标注；时效性敏感维度（定价、功能更新、战略动态）"
                 "优先引用较新的证据，若只有旧证据可用，应在报告中注明'截至YYYY年MM月'并提示信息可能已更新\n"
+                "9. 不要机械复述 briefing notes；要把证据转化成有判断、有取舍的商业分析。\n"
+                "10. 如果 briefing notes 对某个判断支持不足，请直接写'现有公开证据不足以判断'，不要补充想象。\n"
                 "\n"
                 "【报告结构】（Markdown格式）\n"
                 "# [报告标题]\n"
@@ -1660,29 +1588,235 @@ class ReportComposerAgent(BaseAgent):
                 "\n"
                 "只输出Markdown正文，不要用代码块包裹。"
             ),
-            user=(
-                f"目标产品：{request.target_product}\n"
-                f"竞品：{', '.join(request.competitors)}\n"
-                f"研究目标：{request.research_goal}\n"
-                f"项目名称：{request.project_name}\n"
-                "\n"
-                f"【按维度整理的公开证据（每条后面的[N]是引用编号，报告中直接使用）】\n"
-                f"{evidence_context}\n"
-                "\n"
-                f"【分析结论摘要（可作为报告论断的参考基础，写报告时要转化为流畅的分析段落）】\n"
-                f"{claims_context}"
-            ),
+            user=json.dumps(brief, ensure_ascii=False, default=str),
         )
         markdown = (markdown or "").strip()
         if markdown.startswith("```"):
             markdown = markdown.strip("`").removeprefix("markdown").strip()
         if len(markdown) < 800:
-            return _llm_unavailable_report(request)
+            raise ValueError("LLM report output was too short; report generation failed")
+        ref_text = self._render_cited_references(markdown, references)
         if "<<REFERENCES>>" in markdown:
             markdown = markdown.replace("<<REFERENCES>>", ref_text)
         elif "## 参考来源" not in markdown:
             markdown = markdown + "\n\n## 参考来源\n\n" + ref_text
         return markdown
+
+    def _render_cited_references(self, markdown: str, references: list[str]) -> str:
+        cited_numbers = {
+            int(match)
+            for match in re.findall(r"\[(\d+)\]", markdown)
+            if match.isdigit()
+        }
+        if not cited_numbers:
+            return "\n".join(references)
+        return "\n".join(
+            reference
+            for index, reference in enumerate(references, start=1)
+            if index in cited_numbers
+        )
+
+    def _build_citation_index(
+        self,
+        evidence: list[Evidence],
+        claims: list[Claim],
+        recommendations: list[OpportunityRecommendation],
+        *,
+        max_references: int,
+    ) -> tuple[dict[str, int], list[str]]:
+        evidence_by_id = {item.evidence_id: item for item in evidence}
+        ordered_ids: list[str] = []
+
+        def add_id(evidence_id: str) -> None:
+            if evidence_id in evidence_by_id and evidence_id not in ordered_ids:
+                ordered_ids.append(evidence_id)
+
+        for claim in sorted(claims, key=lambda item: item.confidence, reverse=True)[:30]:
+            for evidence_id in claim.supporting_evidence_ids[:3]:
+                add_id(evidence_id)
+        for recommendation in recommendations[:8]:
+            for evidence_id in recommendation.evidence_ids[:3]:
+                add_id(evidence_id)
+        for item in sorted(
+            evidence,
+            key=lambda ev: (ev.confidence * 0.65 + ev.freshness_score * 0.35),
+            reverse=True,
+        ):
+            add_id(item.evidence_id)
+            if len(ordered_ids) >= max_references:
+                break
+
+        citation_map: dict[str, int] = {}
+        references: list[str] = []
+        seen_urls: dict[str, int] = {}
+        for evidence_id in ordered_ids:
+            ev = evidence_by_id[evidence_id]
+            url_key = ev.source_url.rstrip("/").lower()
+            if url_key in seen_urls:
+                citation_map[evidence_id] = seen_urls[url_key]
+                continue
+            number = len(references) + 1
+            citation_map[evidence_id] = number
+            seen_urls[url_key] = number
+            title = ev.source_title or ev.title or ev.source_url
+            references.append(f"[{number}] {title}. {ev.source_url}")
+            if len(references) >= max_references:
+                break
+        return citation_map, references
+
+    def _build_report_brief(
+        self,
+        request: ResearchRequest,
+        evidence: list[Evidence],
+        claims: list[Claim],
+        metrics: RunMetrics,
+        artifacts: dict[str, Any],
+        citation_map: dict[str, int],
+    ) -> dict[str, Any]:
+        matrix: CompetitorMatrix | None = artifacts.get("matrix")
+        recommendations: list[OpportunityRecommendation] = artifacts.get("recommendations") or []
+        battlecards = artifacts.get("battlecards") or []
+        observability: ObservabilitySnapshot | None = artifacts.get("observability")
+        dimensions = request.analysis_dimensions or DEFAULT_DIMENSIONS
+        entities = [request.target_product, *request.competitors]
+
+        def cite(evidence_ids: list[str], limit: int = 4) -> str:
+            seen: list[int] = []
+            for evidence_id in evidence_ids:
+                number = citation_map.get(evidence_id)
+                if number and number not in seen:
+                    seen.append(number)
+                if len(seen) >= limit:
+                    break
+            return "".join(f"[{number}]" for number in seen)
+
+        def short(text: str | None, limit: int = 220) -> str:
+            clean = " ".join((text or "").split())
+            if len(clean) <= limit:
+                return clean
+            return clean[: limit - 1].rstrip() + "..."
+
+        matrix_cells: list[dict[str, Any]] = []
+        if matrix:
+            for cell in matrix.cells:
+                if cell.dimension not in dimensions or cell.competitor not in entities:
+                    continue
+                matrix_cells.append(
+                    {
+                        "dimension": DIMENSION_LABELS.get(cell.dimension, cell.dimension),
+                        "competitor": cell.competitor,
+                        "summary": short(cell.summary, 170),
+                        "citations": cite(cell.evidence_ids, 3),
+                    }
+                )
+
+        top_claims: list[dict[str, Any]] = []
+        for claim in sorted(claims, key=lambda item: item.confidence, reverse=True):
+            if claim.verification_status == "rejected":
+                continue
+            citations = cite(claim.supporting_evidence_ids, 4)
+            if not citations:
+                continue
+            top_claims.append(
+                {
+                    "dimension": DIMENSION_LABELS.get(claim.dimension, claim.dimension),
+                    "claim": short(claim.final_wording or claim.claim, 260),
+                    "reasoning": short(claim.reasoning_summary, 180),
+                    "risk_level": claim.risk_level,
+                    "citations": citations,
+                }
+            )
+            if len(top_claims) >= 24:
+                break
+
+        from collections import defaultdict
+
+        def evidence_score(ev: Evidence) -> float:
+            return ev.confidence * 0.6 + ev.freshness_score * 0.25 + ev.authority_score * 0.15
+
+        grouped: dict[str, dict[str, list[Evidence]]] = defaultdict(lambda: defaultdict(list))
+        for item in sorted(evidence, key=evidence_score, reverse=True):
+            if item.dimension not in dimensions:
+                continue
+            competitor = item.competitor or "其他"
+            if competitor not in entities:
+                continue
+            if not citation_map.get(item.evidence_id):
+                continue
+            bucket = grouped[item.dimension][competitor]
+            if len(bucket) < 2:
+                bucket.append(item)
+
+        evidence_brief: list[dict[str, Any]] = []
+        for dimension in dimensions:
+            dimension_rows: list[dict[str, Any]] = []
+            for entity in entities:
+                for item in grouped.get(dimension, {}).get(entity, []):
+                    dimension_rows.append(
+                        {
+                            "competitor": entity,
+                            "fact": short(item.fact, 220),
+                            "quote": short(item.quote, 220),
+                            "source_title": short(item.source_title or item.title, 110),
+                            "source_type": item.source_type,
+                            "published_at": item.published_at.strftime("%Y-%m") if item.published_at else None,
+                            "citation": cite([item.evidence_id], 1),
+                        }
+                    )
+            if dimension_rows:
+                evidence_brief.append(
+                    {
+                        "dimension": DIMENSION_LABELS.get(dimension, dimension),
+                        "evidence": dimension_rows[:10],
+                    }
+                )
+
+        return {
+            "project": {
+                "name": request.project_name,
+                "target_product": request.target_product,
+                "product_description": request.product_description,
+                "competitors": request.competitors,
+                "research_goal": request.research_goal,
+                "analysis_dimensions": [DIMENSION_LABELS.get(item, item) for item in dimensions],
+            },
+            "run_metrics": {
+                "sources_fetched": metrics.sources_fetched,
+                "evidence_count": metrics.evidence_count,
+                "claim_count": metrics.claim_count,
+                "verified_claim_count": metrics.verified_claim_count,
+            },
+            "quality_context": {
+                "source_mix": observability.source_mix if observability else {},
+                "report_confidence": observability.report_confidence if observability else None,
+            },
+            "matrix_cells": matrix_cells,
+            "top_claims": top_claims,
+            "representative_evidence": evidence_brief,
+            "recommendations": [
+                {
+                    "title": item.title,
+                    "recommendation": short(item.recommendation, 240),
+                    "rationale": short(item.rationale, 220),
+                    "expected_value": short(item.expected_value, 180),
+                    "next_steps": [short(step, 120) for step in item.next_steps[:3]],
+                    "citations": cite(item.evidence_ids, 4),
+                }
+                for item in recommendations[:6]
+            ],
+            "battlecards": [
+                {
+                    "competitor": item.competitor,
+                    "scenario": short(item.customer_scenario, 140),
+                    "competitor_strength": short(item.competitor_strength, 160),
+                    "talk_track": short(item.talk_track, 180),
+                    "objection_handler": short(item.objection_handler, 180),
+                    "citations": cite(item.evidence_ids, 3),
+                }
+                for item in battlecards[:6]
+            ],
+            "citation_instruction": "Use citation numbers exactly as provided, for example [1][3]. End the report with <<REFERENCES>> under ## 参考来源.",
+        }
 
     async def write_executive_summary(
         self,
@@ -1695,7 +1829,7 @@ class ReportComposerAgent(BaseAgent):
         observability: ObservabilitySnapshot,
     ) -> str:
         if not self.llm_enabled:
-            return _llm_unavailable_report(request)
+            raise RuntimeError("LLM is not configured; executive summary generation cannot continue")
 
         context = {
             "project": request.project_name,
@@ -1733,7 +1867,7 @@ class ReportComposerAgent(BaseAgent):
             ],
         }
 
-        markdown = await self.invoke_text(
+        markdown = await self.invoke_text_strict(
             system=(
                 "你是竞品研究报告的执行摘要写作者。请只基于输入中的证据、Claim、矩阵覆盖和建议来写，"
                 "不要编造额外事实，不要暴露 ev_ ID，不要写模板化空话。"
@@ -1746,7 +1880,9 @@ class ReportComposerAgent(BaseAgent):
         markdown = (markdown or "").strip()
         if markdown.startswith("```"):
             markdown = markdown.strip("`").removeprefix("markdown").strip()
-        return markdown or _llm_unavailable_report(request)
+        if not markdown:
+            raise ValueError("LLM executive summary output was empty")
+        return markdown
 
     async def write_methodology(
         self,
@@ -1758,7 +1894,7 @@ class ReportComposerAgent(BaseAgent):
         observability: ObservabilitySnapshot,
     ) -> str:
         if not self.llm_enabled:
-            return _llm_unavailable_report(request)
+            raise RuntimeError("LLM is not configured; methodology generation cannot continue")
 
         context = {
             "project": request.project_name,
@@ -1803,7 +1939,7 @@ class ReportComposerAgent(BaseAgent):
             ][:12],
         }
 
-        markdown = await self.invoke_text(
+        markdown = await self.invoke_text_strict(
             system=(
                 "你是竞品研究方法论说明的作者。请基于输入中的真实运行数据说明本次研究如何完成，"
                 "包括研究设计、来源采集、Evidence 抽取、Claim 生成与 Red Team 审查、质量门禁和局限性。"
@@ -1816,7 +1952,9 @@ class ReportComposerAgent(BaseAgent):
         markdown = (markdown or "").strip()
         if markdown.startswith("```"):
             markdown = markdown.strip("`").removeprefix("markdown").strip()
-        return markdown or _llm_unavailable_report(request)
+        if not markdown:
+            raise ValueError("LLM methodology output was empty")
+        return markdown
 
 
 def estimate_coverage(
@@ -2351,20 +2489,6 @@ def make_stable_id(prefix: str, text: str) -> str:
 
     digest = hashlib.sha1(text.encode("utf-8", errors="ignore")).hexdigest()[:12]
     return f"{prefix}_{digest}"
-
-
-def _llm_unavailable_report(request: ResearchRequest) -> str:
-    return (
-        f"# {request.project_name} — 报告生成失败\n\n"
-        "> **当前 LLM API 无法使用，无法生成竞品分析报告。**\n\n"
-        "请检查以下配置后重新运行研究：\n\n"
-        "- `CG_LLM_PROVIDER` 是否正确设置（支持 `deepseek` / `qwen` / `ark`）\n"
-        "- 对应的 API Key 是否已配置（`DEEPSEEK_API_KEY` / `QWEN_API_KEY` / `ARK_API_KEY`）\n"
-        "- API 服务当前是否可正常访问\n\n"
-        f"**研究目标：** {request.research_goal}\n\n"
-        f"**目标产品：** {request.target_product}  "
-        f"**竞品：** {', '.join(request.competitors)}\n"
-    )
 
 
 # Compatibility aliases for old run manifests and stray imports.

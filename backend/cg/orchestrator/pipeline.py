@@ -910,18 +910,13 @@ class ResearchPipeline:
             evidence,
             claims,
             metrics,
+            {
+                "matrix": matrix,
+                "recommendations": recommendations,
+                "battlecards": battlecards,
+                "observability": observability,
+            },
         )
-        if is_report_fallback(report):
-            report = build_analysis_report(
-                request,
-                evidence,
-                claims,
-                metrics,
-                matrix,
-                recommendations,
-                battlecards,
-                observability,
-            )
         executive_summary = await composer.write_executive_summary(
             request,
             evidence,
@@ -1897,19 +1892,6 @@ def build_analysis_report(
             ]
         )
     return "\n".join(lines)
-
-
-def is_report_fallback(report: str) -> bool:
-    text = report.strip()
-    if not text:
-        return True
-    fallback_markers = [
-        "报告生成失败",
-        "当前 LLM API 无法使用",
-        "LLM API 无法使用",
-        "无法生成竞品分析报告",
-    ]
-    return any(marker in text for marker in fallback_markers)
 
 
 def build_evidence_gaps(matrix: CompetitorMatrix) -> list[str]:

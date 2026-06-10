@@ -60,6 +60,20 @@ class BaseAgent:
             )
             return None
 
+    async def invoke_text_strict(self, system: str, user: str) -> str:
+        if not self.llm_enabled:
+            raise RuntimeError("LLM is not configured")
+        try:
+            return await self.ctx.llm.complete(system, user)
+        except Exception as exc:
+            await self.record_llm_event(
+                "error",
+                "failed",
+                "LLM text call failed",
+                {"error_type": exc.__class__.__name__, "error": str(exc)[:500]},
+            )
+            raise
+
     async def record_llm_event(
         self,
         phase: str,
